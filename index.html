@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="auvier-root" content="./" />
+    <title>Auvier Groups — Auvier Technologies &amp; Auvier Clothing</title>
+    <meta
+      name="description"
+      content="Auvier Groups is the parent company of Auvier Technologies, a web design and development studio, and Auvier Clothing, a premium everyday-wear label."
+    />
+    <meta name="theme-color" content="#f4efe6" />
+    <link rel="icon" type="image/svg+xml" href="/favicon-group.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Auvier Groups — Two companies. One standard of craft." />
+    <meta
+      property="og:description"
+      content="The parent company of Auvier Technologies and Auvier Clothing."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Auvier Groups",
+        "email": "auviergroups@gmail.com",
+        "subOrganization": [
+          { "@type": "Organization", "name": "Auvier Technologies" },
+          { "@type": "Organization", "name": "Auvier Clothing" }
+        ]
+      }
+    </script>
+  </head>
+  <body class="site-group">
+    <div id="root"></div>
+    <script type="module" src="/src/entries/group.tsx"></script>
+  </body>
+</html>

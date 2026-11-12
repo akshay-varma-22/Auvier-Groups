@@ -1,0 +1,125 @@
+/* ==========================================================================
+   Auvier design tokens
+   Colour is authored in OKLCH so every step moves evenly in perceived
+   lightness. One signature hue (Ember) does all the talking; everything else
+   is a warm bone and a violet-tinted ink.
+   ========================================================================== */
+
+:root {
+  /* --- Palette ----------------------------------------------------------- */
+  --ink-0: oklch(0.135 0.008 290); /* page */
+  --ink-1: oklch(0.17 0.01 290); /* raised */
+  --ink-2: oklch(0.215 0.012 290); /* surface */
+  --ink-3: oklch(0.29 0.013 290); /* strong border */
+  --ink-4: oklch(0.42 0.012 290);
+
+  --bone-0: oklch(0.958 0.012 85); /* paper */
+  --bone-1: oklch(0.925 0.016 85);
+  --bone-2: oklch(0.86 0.018 85);
+
+  --ember: oklch(0.69 0.205 38);
+  --ember-deep: oklch(0.58 0.2 35);
+  --ember-glow: oklch(0.69 0.205 38 / 0.35);
+  --signal: oklch(0.82 0.19 150); /* "live" green, used sparingly */
+  --brass: oklch(0.68 0.1 76); /* Auvier Groups seal */
+  --brass-deep: oklch(0.5 0.085 70);
+
+  /* --- Semantic (dark by default) ----------------------------------------- */
+  --bg: var(--ink-0);
+  --bg-raised: var(--ink-1);
+  --surface: var(--ink-2);
+  --fg: var(--bone-0);
+  --fg-2: oklch(0.958 0.012 85 / 0.7);
+  --fg-3: oklch(0.958 0.012 85 / 0.5);
+  --line: oklch(0.958 0.012 85 / 0.12);
+  --line-strong: oklch(0.958 0.012 85 / 0.24);
+  --accent: var(--ember);
+  --on-accent: var(--ink-0);
+
+  /* --- Type --------------------------------------------------------------- */
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  /* Fluid modular scale (~1.25 on mobile → ~1.5 on wide screens) */
+  --step--2: clamp(0.72rem, 0.7rem + 0.08vw, 0.78rem);
+  --step--1: clamp(0.82rem, 0.79rem + 0.12vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.18vw, 1.125rem);
+  --step-1: clamp(1.18rem, 1.08rem + 0.45vw, 1.45rem);
+  --step-2: clamp(1.45rem, 1.25rem + 0.95vw, 2.1rem);
+  --step-3: clamp(1.9rem, 1.5rem + 1.9vw, 3.2rem);
+  --step-4: clamp(2.5rem, 1.8rem + 3.4vw, 5.2rem);
+  --step-5: clamp(3.1rem, 1.9rem + 6vw, 8.6rem);
+  --step-hero: clamp(3.4rem, 1.2rem + 9.6vw, 10.4rem);
+
+  --lh-tight: 0.92;
+  --lh-snug: 1.12;
+  --lh-body: 1.62;
+  --tracking-display: -0.04em;
+  --tracking-tight: -0.02em;
+  --tracking-mono: 0.04em;
+
+  /* --- Space & shape ------------------------------------------------------ */
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --max: 1440px;
+  --section-y: clamp(6rem, 12vw, 11rem);
+  --r-sm: 10px;
+  --r-md: 18px;
+  --r-lg: 28px;
+  --r-xl: clamp(28px, 4vw, 48px);
+
+  /* --- Motion ------------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- Elevation ---------------------------------------------------------- */
+  --shadow-lg: 0 40px 80px -24px oklch(0 0 0 / 0.55), 0 12px 24px -12px oklch(0 0 0 / 0.4);
+  --shadow-paper: 0 30px 60px -30px oklch(0.3 0.03 60 / 0.35), 0 8px 18px -10px oklch(0.3 0.03 60 / 0.2);
+
+  color-scheme: dark;
+}
+
+/* Section themes flip the semantic tokens, so components never hard-code colour. */
+.theme-paper {
+  --bg: var(--bone-0);
+  --bg-raised: var(--bone-1);
+  --surface: oklch(1 0 0 / 0.55);
+  --fg: var(--ink-0);
+  --fg-2: oklch(0.135 0.008 290 / 0.7);
+  --fg-3: oklch(0.135 0.008 290 / 0.55);
+  --line: oklch(0.135 0.008 290 / 0.12);
+  --line-strong: oklch(0.135 0.008 290 / 0.24);
+  --accent: var(--ember-deep);
+  color-scheme: light;
+}
+
+.theme-ember {
+  --bg: var(--ember);
+  --bg-raised: oklch(0.64 0.2 37);
+  --surface: oklch(0.135 0.008 290 / 0.08);
+  --fg: var(--ink-0);
+  --fg-2: oklch(0.135 0.008 290 / 0.75);
+  --fg-3: oklch(0.135 0.008 290 / 0.6);
+  --line: oklch(0.135 0.008 290 / 0.18);
+  --line-strong: oklch(0.135 0.008 290 / 0.4);
+  --accent: var(--ink-0);
+  --on-accent: var(--ember);
+  color-scheme: light;
+}
+
+/* Dark sections inside an otherwise light site (group & clothing pages). */
+.theme-ink {
+  --bg: var(--ink-0);
+  --bg-raised: var(--ink-1);
+  --surface: var(--ink-2);
+  --fg: var(--bone-0);
+  --fg-2: oklch(0.958 0.012 85 / 0.7);
+  --fg-3: oklch(0.958 0.012 85 / 0.5);
+  --line: oklch(0.958 0.012 85 / 0.12);
+  --line-strong: oklch(0.958 0.012 85 / 0.24);
+  --accent: var(--ink-accent, var(--ember));
+  color: var(--fg);
+  color-scheme: dark;
+}

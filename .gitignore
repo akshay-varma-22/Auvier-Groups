@@ -1,0 +1,7 @@
+node_modules
+dist
+*.zip
+*.tsbuildinfo
+.vercel
+auvier-groups-website/
+.claude/

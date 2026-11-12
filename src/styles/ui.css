@@ -1,0 +1,923 @@
+/* ==========================================================================
+   Shared UI: brand, buttons, labels, cursor, preloader, nav, frames
+   ========================================================================== */
+
+/* --- Brand ---------------------------------------------------------------- */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--fg);
+}
+
+.logo__word {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.logo__sub {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  padding: 0.25rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.mark__dot {
+  fill: var(--mark-dot, var(--ember));
+  transform-origin: 32px 38.5px;
+}
+
+.mark__dot.is-live {
+  animation: breathe 2.8s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.72);
+  }
+}
+
+/* --- Labels --------------------------------------------------------------- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 450;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.eyebrow__index {
+  color: var(--accent);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.95rem 0.5rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  background: oklch(0.135 0.008 290 / 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.status-pill__dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--signal);
+}
+
+.status-pill__dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--signal);
+  animation: ping 2s var(--ease-out) infinite;
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+/* --- Buttons -------------------------------------------------------------- */
+.magnetic {
+  display: inline-block;
+  will-change: transform;
+}
+
+.btn {
+  /* Each site can re-skin the primary button through these hooks. */
+  --btn-bg: var(--btn-primary-bg, var(--ember));
+  --btn-fg: var(--btn-primary-fg, var(--ink-0));
+  --btn-icon-bg: var(--btn-primary-icon-bg, var(--ink-0));
+  --btn-icon-fg: var(--btn-primary-icon-fg, var(--ember));
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.5rem 0.55rem 0.5rem 1.4rem;
+  min-height: 3.5rem;
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-sans);
+  font-weight: 560;
+  font-size: var(--step-0);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    background-color 0.4s var(--ease-out),
+    color 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out);
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--btn-hover-bg, var(--bone-0));
+  transform: translateY(101%);
+  transition: transform 0.6s var(--ease-out);
+}
+
+.btn:hover::before {
+  transform: translateY(0);
+}
+
+.btn--primary:hover {
+  color: var(--btn-hover-fg, var(--btn-fg));
+  box-shadow: 0 10px 40px -8px var(--btn-glow, var(--ember-glow));
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--fg);
+  --btn-icon-bg: var(--fg);
+  --btn-icon-fg: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.btn--ghost::before {
+  background: var(--fg);
+}
+
+.btn--ghost:hover {
+  --btn-fg: var(--bg);
+  --btn-icon-bg: var(--bg);
+  --btn-icon-fg: var(--fg);
+}
+
+.btn--ink {
+  --btn-bg: var(--ink-0);
+  --btn-fg: var(--bone-0);
+  --btn-icon-bg: var(--ember);
+  --btn-icon-fg: var(--ink-0);
+}
+
+.btn--ink::before {
+  background: var(--ink-2);
+}
+
+.btn--sm {
+  min-height: 2.75rem;
+  padding: 0.35rem 0.4rem 0.35rem 1.1rem;
+  gap: 0.7rem;
+  font-size: var(--step--1);
+}
+
+.btn:not(:has(.btn__icon)) {
+  padding-inline: 1.5rem;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.btn__roll {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.btn__text {
+  display: block;
+  transition: transform 0.6s var(--ease-out);
+}
+
+.btn__text + .btn__text {
+  position: absolute;
+  inset: 100% 0 auto 0;
+}
+
+.btn:hover .btn__text {
+  transform: translateY(-100%);
+}
+
+.btn__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--btn-icon-bg);
+  color: var(--btn-icon-fg);
+  font-size: 1.05rem;
+  transition:
+    transform 0.6s var(--ease-out),
+    background-color 0.4s,
+    color 0.4s;
+}
+
+.btn--sm .btn__icon {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.9rem;
+}
+
+.btn:hover .btn__icon {
+  transform: rotate(-45deg);
+}
+
+/* Rolling text links */
+.roll {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.roll > span {
+  display: inline-block;
+  transition: transform 0.55s var(--ease-out);
+}
+
+.roll::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 100% 0 auto 0;
+  transition: transform 0.55s var(--ease-out);
+}
+
+a:hover > .roll > span,
+a:hover > .roll::after {
+  transform: translateY(-100%);
+}
+
+/* --- Split text ----------------------------------------------------------- */
+.split__mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  /* room for descenders and italic overhang */
+  padding: 0.04em 0.06em 0.12em;
+  margin: -0.04em -0.06em -0.12em;
+}
+
+.split__word {
+  display: inline-block;
+  transform-origin: 0 100%;
+  will-change: transform;
+}
+
+/* --- Cursor --------------------------------------------------------------- */
+/* No blend modes: Cursor.tsx sets --cursor-c from the text colour under the
+   pointer and --cursor-h to a halo of the opposite tone, so the cursor reads on
+   light paper, dark ink, Ember, photos and the 3D scene alike. */
+.cursor {
+  --cursor-c: rgb(28 26 23);
+  --cursor-h: rgb(250 247 240 / 0.9);
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.cursor__anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+}
+
+.cursor__dot,
+.cursor__ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.cursor__dot {
+  width: 8px;
+  height: 8px;
+  background: var(--cursor-c);
+  box-shadow: 0 0 0 2px var(--cursor-h);
+  transition:
+    width 0.3s var(--ease-out),
+    height 0.3s var(--ease-out),
+    background-color 0.25s,
+    box-shadow 0.25s,
+    opacity 0.25s,
+    scale 0.2s var(--ease-out);
+}
+
+.cursor__ring {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid color-mix(in srgb, var(--cursor-c) 60%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--cursor-h) 50%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--cursor-h) 50%, transparent);
+  transition:
+    width 0.45s var(--ease-out),
+    height 0.45s var(--ease-out),
+    background-color 0.3s,
+    border-color 0.3s,
+    box-shadow 0.3s,
+    opacity 0.3s,
+    scale 0.25s var(--ease-out);
+}
+
+.cursor__label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cursor-accent-ink, var(--ink-0));
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.3s, transform 0.5s var(--ease-out);
+}
+
+/* Links and buttons: the ring closes in and tints; the dot stays as the aim point. */
+.cursor[data-mode="hover"] .cursor__ring {
+  width: 54px;
+  height: 54px;
+  border-color: var(--cursor-c);
+  background: color-mix(in srgb, var(--cursor-c) 10%, transparent);
+}
+
+.cursor[data-mode="hover"] .cursor__dot {
+  width: 5px;
+  height: 5px;
+}
+
+/* Press feedback. */
+.cursor[data-pressed] .cursor__ring {
+  scale: 0.84;
+}
+
+.cursor[data-pressed] .cursor__dot {
+  scale: 0.7;
+}
+
+/* "View" cards: a solid disc in the company colour with a label. */
+.cursor[data-mode="view"] .cursor__ring {
+  width: 96px;
+  height: 96px;
+  background: var(--cursor-accent, var(--ember));
+  border-color: transparent;
+  box-shadow:
+    0 0 0 2px var(--cursor-h),
+    0 14px 30px -12px rgb(0 0 0 / 0.45);
+}
+
+.cursor[data-mode="view"] .cursor__label {
+  opacity: 1;
+  transform: none;
+}
+
+/* Form fields use the native text caret instead. */
+.cursor[data-mode="view"] .cursor__dot,
+.cursor[data-mode="text"] .cursor__ring,
+.cursor[data-mode="text"] .cursor__dot,
+.cursor[data-mode="hidden"] .cursor__ring,
+.cursor[data-mode="hidden"] .cursor__dot {
+  opacity: 0;
+}
+
+/* --- Preloader ------------------------------------------------------------ */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: grid;
+  place-items: center;
+  background: var(--ink-0);
+  color: var(--bone-0);
+}
+
+.preloader__center {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.8rem, 2vw, 1.4rem);
+}
+
+.preloader__mark {
+  width: clamp(3rem, 8vw, 5.5rem);
+  height: auto;
+}
+
+.preloader__word {
+  display: flex;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(3.4rem, 11vw, 8.5rem);
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.preloader__mask {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+
+.preloader__mask > span {
+  display: inline-block;
+}
+
+.preloader__foot {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--gutter) + 0.5rem);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.preloader__count {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 0.8;
+  color: var(--bone-0);
+  font-variant-numeric: tabular-nums;
+}
+
+.preloader__bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--ember);
+  transform-origin: 0 50%;
+}
+
+/* --- Nav ------------------------------------------------------------------ */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  height: 2px;
+  background: var(--progress-color, var(--ember));
+  transform-origin: 0 50%;
+}
+
+.nav {
+  position: fixed;
+  top: var(--groupbar-h, 0px);
+  left: 0;
+  right: 0;
+  z-index: 120;
+  padding: 0.9rem var(--gutter);
+  pointer-events: none;
+  transition: top 0.45s var(--ease-out);
+}
+
+.nav.is-scrolled {
+  top: 0;
+}
+
+.nav__inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  max-width: calc(var(--max) + 1.5rem);
+  margin-inline: auto;
+  padding: 0.55rem 0.55rem 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  pointer-events: auto;
+  transition:
+    background-color 0.5s var(--ease-out),
+    border-color 0.5s var(--ease-out),
+    backdrop-filter 0.5s;
+}
+
+.nav.is-scrolled .nav__inner {
+  background: var(--nav-glass, oklch(0.135 0.008 290 / 0.62));
+  border-color: var(--line);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.nav.is-menu-open .nav__inner {
+  background: transparent;
+  border-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.nav.is-menu-open .logo {
+  --fg: var(--menu-fg, var(--ink-0));
+  --fg-3: color-mix(in oklch, var(--menu-fg, var(--ink-0)) 60%, transparent);
+  --line: color-mix(in oklch, var(--menu-fg, var(--ink-0)) 25%, transparent);
+}
+
+.nav.is-menu-open .mark__dot {
+  fill: var(--menu-dot, var(--bone-0));
+}
+
+.nav__logo {
+  position: relative;
+  z-index: 2;
+}
+
+/* Fashion-style bar: links on the left, wordmark centred. */
+.nav--centered .nav__links {
+  position: static;
+  translate: none;
+  order: -1;
+}
+
+.nav--centered .nav__logo {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.nav__links {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.nav__link {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  font-size: var(--step--1);
+  font-weight: 500;
+  color: var(--fg-2);
+  transition: color 0.3s, background-color 0.3s;
+}
+
+.nav__link:hover {
+  color: var(--fg);
+  background: color-mix(in oklch, var(--fg) 6%, transparent);
+}
+
+.nav__burger {
+  position: relative;
+  z-index: 2;
+  margin-left: auto;
+  display: none;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--burger-bg, var(--bone-0));
+}
+
+.nav__burger span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 2px;
+  margin-left: -9px;
+  border-radius: 2px;
+  background: var(--burger-fg, var(--ink-0));
+  transition: transform 0.5s var(--ease-out);
+}
+
+.nav__burger span:first-child {
+  transform: translateY(-4px);
+}
+
+.nav__burger span:last-child {
+  transform: translateY(4px);
+}
+
+.nav__burger.is-open span:first-child {
+  transform: rotate(45deg);
+}
+
+.nav__burger.is-open span:last-child {
+  transform: rotate(-45deg);
+}
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 7rem var(--gutter) calc(var(--gutter) + 1rem);
+  background: var(--menu-bg, var(--ember));
+  color: var(--menu-fg, var(--ink-0));
+}
+
+.menu__extras {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 1.4rem;
+  font-size: var(--step-0);
+}
+
+.menu__links {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu__mask {
+  overflow: hidden;
+  border-bottom: 1px solid color-mix(in oklch, var(--menu-fg, var(--ink-0)) 18%, transparent);
+}
+
+.menu__link {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.6rem, 12vw, 4.5rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.menu__index {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 450;
+  letter-spacing: 0.05em;
+}
+
+.menu__foot {
+  display: grid;
+  gap: 0.3rem;
+  font-size: var(--step-1);
+  font-weight: 560;
+}
+
+.menu__label {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  font-weight: 450;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+}
+
+@media (max-width: 899px) {
+  .nav__links,
+  .nav__cta {
+    display: none;
+  }
+
+  .nav__burger {
+    display: block;
+  }
+
+  .nav {
+    padding-inline: calc(var(--gutter) - 0.4rem);
+  }
+}
+
+/* --- Browser frame (shared by hero + work) -------------------------------- */
+.frame {
+  container-type: inline-size;
+  overflow: hidden;
+  border-radius: clamp(10px, 1.6cqw, 18px);
+  background: var(--ink-1);
+  box-shadow:
+    0 0 0 1px oklch(0.135 0.008 290 / 0.12),
+    var(--shadow-lg);
+}
+
+.frame__bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.4cqw;
+  height: max(26px, 3.6cqw);
+  background: oklch(0.2 0.01 290);
+  border-bottom: 1px solid oklch(1 0 0 / 0.06);
+}
+
+.frame__dots {
+  display: inline-flex;
+  gap: max(5px, 0.7cqw);
+}
+
+.frame__dots i {
+  width: max(7px, 1cqw);
+  height: max(7px, 1cqw);
+  border-radius: 50%;
+  background: oklch(1 0 0 / 0.16);
+}
+
+.frame__dots i:first-child {
+  background: oklch(0.7 0.18 28);
+}
+
+.frame__url {
+  padding: 0.2em 1.4em;
+  border-radius: 999px;
+  background: oklch(1 0 0 / 0.06);
+  font-family: var(--font-mono);
+  font-size: max(9px, 1.15cqw);
+  color: oklch(1 0 0 / 0.55);
+  white-space: nowrap;
+}
+
+.frame__screen {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+/* --- Group bar: ties each company's site back to Auvier Groups ------------ */
+.has-groupbar {
+  --groupbar-h: 34px;
+}
+
+.groupbar {
+  position: relative;
+  z-index: 125;
+  height: var(--groupbar-h);
+  border-bottom: 1px solid var(--line);
+  background: var(--groupbar-bg, var(--ink-1));
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.groupbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(100% - 2 * var(--gutter), var(--max));
+  height: 100%;
+  margin-inline: auto;
+}
+
+.groupbar__home {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  white-space: nowrap;
+  --mark-dot: var(--brass);
+}
+
+.groupbar__home strong {
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.groupbar__home:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.groupbar__links {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.groupbar__link {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  transition:
+    color 0.3s,
+    background-color 0.3s;
+}
+
+.groupbar__link:hover {
+  color: var(--fg);
+}
+
+.groupbar__link[aria-current="page"] {
+  color: var(--fg);
+  background: color-mix(in oklch, var(--fg) 9%, transparent);
+}
+
+@media (max-width: 479px) {
+  .groupbar__home span {
+    display: none;
+  }
+
+  .groupbar__home::after {
+    content: "Auvier Groups";
+    color: var(--fg);
+  }
+}
+
+/* --- Scroll-revealed paragraph -------------------------------------------- */
+.scroll-words__word {
+  display: inline-block;
+}
+
+/* --- Garment drawings (Clothing and group pages) ---------------------------- */
+.garment {
+  display: block;
+  overflow: visible;
+  isolation: isolate;
+  transition: color 0.6s ease;
+}
+
+/* The lit height map: brightens ridges and darkens folds and seams. */
+.garment__relief {
+  mix-blend-mode: soft-light;
+}
+
+/* "Drag" cursor for things you can grab (cloth, clothing rail). */
+.cursor[data-mode="grab"] .cursor__ring {
+  width: 74px;
+  height: 74px;
+  border-color: transparent;
+  background: oklch(0.985 0.006 85 / 0.92);
+  box-shadow:
+    0 0 0 1px oklch(0.24 0.012 60 / 0.18),
+    0 10px 24px -10px oklch(0 0 0 / 0.35);
+}
+
+.cursor[data-mode="grab"] .cursor__label {
+  color: oklch(0.24 0.012 60);
+  opacity: 1;
+  transform: none;
+}
+
+.cursor[data-mode="grab"] .cursor__dot {
+  opacity: 0;
+}
+
+/* Photographic garments: the drawn flat shows until the render fades in. */
+.garment--photo {
+  position: relative;
+}
+
+.garment__flat,
+.garment__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.5s ease;
+}
+
+.garment__flat {
+  overflow: visible;
+  isolation: isolate;
+}
+
+.garment__photo {
+  opacity: 0;
+}
+
+.garment--photo.is-ready .garment__photo {
+  opacity: 1;
+}
+
+.garment--photo.is-ready .garment__flat {
+  opacity: 0;
+}

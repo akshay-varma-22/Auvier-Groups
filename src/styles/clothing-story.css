@@ -1,0 +1,440 @@
+/* ==========================================================================
+   Auvier Clothing — the 3D story: thread → weave → cloth → sew → fold.
+   A sticky full-screen canvas with captions that blur in over it.
+   ========================================================================== */
+
+.st {
+  --studio: #efe8dc;
+  position: relative;
+  height: 1150vh;
+  background: var(--studio);
+}
+
+.st__sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.st__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+.st__canvas.is-ready {
+  opacity: 1;
+}
+
+/* Keeps captions legible on the left without dimming the set. */
+.st__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, oklch(0.93 0.016 80 / 0.86) 0%, oklch(0.93 0.016 80 / 0.4) 32%, transparent 56%),
+    linear-gradient(0deg, oklch(0.93 0.016 80 / 0.45) 0%, transparent 28%);
+}
+
+/* --- Opening title --------------------------------------------------------- */
+.st-hero {
+  position: absolute;
+  top: 50%;
+  left: var(--gutter);
+  z-index: 2;
+  width: min(44rem, 54vw);
+  translate: 0 -44%;
+}
+
+.st-hero__eyebrow {
+  gap: 0.6rem;
+}
+
+.st-hero__title {
+  margin: 1.2rem 0 1.4rem;
+  font-family: var(--font-serif);
+  font-size: clamp(3.6rem, 1.3rem + 7.4vw, 9.2rem);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+}
+
+.st-hero__lede {
+  max-width: 31rem;
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+
+.st-hero__soon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 2rem;
+  padding: 0.45rem 0.45rem 0.45rem 1rem;
+  border-radius: 999px;
+  background: oklch(0.985 0.006 85 / 0.82);
+  box-shadow: 0 0 0 1px var(--line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: box-shadow 0.4s;
+}
+
+.st-hero__soon:hover {
+  box-shadow:
+    0 0 0 1px var(--line-strong),
+    0 14px 30px -18px oklch(0.3 0.04 60 / 0.6);
+}
+
+.st-hero__soon-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--loden);
+}
+
+.st-hero__soon-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--loden);
+  animation: ping 2.2s var(--ease-out) infinite;
+}
+
+.st-hero__soon-cta {
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  background: var(--char);
+  color: var(--chalk);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* --- Chapter captions ------------------------------------------------------ */
+.st__captions {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.st-cap {
+  position: absolute;
+  left: var(--gutter);
+  bottom: clamp(3rem, 12vh, 7rem);
+  width: min(34rem, 42vw);
+}
+
+.st-cap__n {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.st-cap__n span {
+  color: var(--fg-3);
+}
+
+.st-cap__n i {
+  width: 2rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.st-cap__title {
+  margin: 1rem 0;
+  font-size: clamp(2.8rem, 1.3rem + 4.2vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.st-cap__body {
+  max-width: 30rem;
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+
+.st-cap--final {
+  top: 11%;
+  bottom: auto;
+  left: 50%;
+  width: min(46rem, 90vw);
+  translate: -50% 0;
+  text-align: center;
+}
+
+.st-cap--final .st-cap__body {
+  margin-inline: auto;
+}
+
+.st-cap__cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.8rem;
+  pointer-events: auto;
+}
+
+.st-cap__cta .cl-quick {
+  width: min(30rem, 100%);
+  background: oklch(0.985 0.006 85 / 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* --- Chapter rail ---------------------------------------------------------- */
+.st-rail {
+  position: absolute;
+  top: 50%;
+  right: var(--gutter);
+  z-index: 3;
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.7rem 0.9rem 0.7rem 0.8rem;
+  border-radius: 14px;
+  background: oklch(0.975 0.008 85 / 0.72);
+  box-shadow: 0 0 0 1px var(--line);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  translate: 0 -50%;
+}
+
+.st-rail__track {
+  position: relative;
+  width: 1px;
+  background: var(--line-strong);
+}
+
+.st-rail__track span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--loden);
+  transform-origin: 50% 0;
+}
+
+.st-rail ol {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-rail button {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.4rem 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  transition: color 0.4s;
+}
+
+.st-rail button.is-done {
+  color: var(--fg-2);
+}
+
+.st-rail button.is-active {
+  color: var(--fg);
+}
+
+.st-rail__n {
+  color: var(--loden);
+}
+
+.st-rail__label {
+  transition: transform 0.5s var(--ease-out);
+}
+
+.st-rail button.is-active .st-rail__label {
+  transform: translateX(0.25rem);
+}
+
+/* --- Scroll cue and loading veil ------------------------------------------- */
+.st-cue {
+  position: absolute;
+  bottom: 1.8rem;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  translate: -50% 0;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.st-cue i {
+  width: 1px;
+  height: 2.6rem;
+  background: linear-gradient(var(--char), transparent);
+  transform-origin: 50% 0;
+  animation: st-cue 2.2s var(--ease-in-out) infinite;
+}
+
+@keyframes st-cue {
+  0% {
+    transform: scaleY(0);
+    opacity: 1;
+  }
+  60% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+.st-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.9rem;
+  background: var(--studio);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.st-loading i {
+  width: 9rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--char), transparent) -9rem 0 / 9rem 100% no-repeat;
+  animation: st-load 1.4s linear infinite;
+}
+
+@keyframes st-load {
+  to {
+    background-position: 9rem 0;
+  }
+}
+
+.st-still {
+  position: absolute;
+  top: 50%;
+  right: 6%;
+  width: min(46vw, 640px);
+  aspect-ratio: 1.2;
+  translate: 0 -50%;
+}
+
+.st-still .garment {
+  position: absolute;
+  width: 55%;
+  height: auto;
+  filter: drop-shadow(0 22px 22px oklch(0.32 0.04 60 / 0.3));
+}
+
+.st-still__a {
+  left: 2%;
+  top: 4%;
+  rotate: -6deg;
+}
+
+.st-still__b {
+  right: 2%;
+  bottom: 0;
+  rotate: 8deg;
+}
+
+/* --- Small screens --------------------------------------------------------- */
+@media (max-width: 899px) {
+  .st {
+    height: 1000vh;
+  }
+
+  .st__veil {
+    background:
+      linear-gradient(0deg, oklch(0.93 0.016 80 / 0.94) 0%, oklch(0.93 0.016 80 / 0.7) 30%, transparent 56%),
+      linear-gradient(180deg, oklch(0.93 0.016 80 / 0.5) 0%, transparent 18%);
+  }
+
+  .st-hero {
+    top: auto;
+    bottom: 6vh;
+    right: var(--gutter);
+    width: auto;
+    translate: none;
+  }
+
+  .st-hero__title {
+    margin: 0.8rem 0 0.9rem;
+    font-size: clamp(3rem, 14vw, 5rem);
+  }
+
+  .st-hero__lede {
+    font-size: var(--step-0);
+  }
+
+  .st-hero__soon {
+    margin-top: 1.2rem;
+  }
+
+  .st-cap {
+    right: var(--gutter);
+    bottom: 5vh;
+    width: auto;
+  }
+
+  .st-cap__title {
+    font-size: clamp(2.2rem, 10vw, 3.4rem);
+  }
+
+  .st-cap__body {
+    font-size: var(--step-0);
+  }
+
+  .st-cap--final {
+    top: 9%;
+    bottom: auto;
+    left: var(--gutter);
+    right: var(--gutter);
+    width: auto;
+    translate: none;
+  }
+
+  .st-rail,
+  .st-cue {
+    display: none;
+  }
+
+  .st-still {
+    top: 8%;
+    right: 50%;
+    width: 80vw;
+    translate: 50% 0;
+  }
+}
