@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { CLOTH, Cloth } from "./cloth";
-import { AMP_FLAT, AMP_PRESSED, FOLDED, Tee, teeTextures, type TeeTextures } from "./tee";
+import { cancelFrame, fontsReady, idle, makeCanvas, nextFrame, type AnyCanvas } from "./env";
+import { AMP_FLAT, AMP_PRESSED, FOLDED, Tee, loadTeeTextures, type TeeTextures } from "./tee";
 import * as tx from "./textures";
 import { clamp01, easeInOut, easeOut, seg, sub, T } from "./timeline";
 
@@ -17,6 +18,9 @@ const TABLE_Y = -0.6;
 const GROUND_Y = -1.25;
 
 type Shot = { pos: THREE.Vector3; look: THREE.Vector3 };
+
+/** What the host page knows that the studio can't look up itself (it may run in a worker). */
+export type WorldOptions = { width: number; height: number; dpr: number; reduced: boolean; coarse: boolean };
 const shot = (px: number, py: number, pz: number, lx: number, ly: number, lz: number): Shot => ({
   pos: new THREE.Vector3(px, py, pz),
   look: new THREE.Vector3(lx, ly, lz),
@@ -59,6 +63,19 @@ export class World {
   private last = 0;
   private raf = 0;
   private running = false;
+  private ready = false;
+  private disposed = false;
+  private visible = false;
+  private fontsLoaded = false;
+  private width: number;
+  private height: number;
+  // resolution adapts to the GPU so scrolling stays smooth
+  private pr = 1;
+  private prMin = 1;
+  private prMax = 1;
+  private dtSum = 0;
+  private dtN = 0;
+  private fastRuns = 0;
   private reduced: boolean;
   private fit = 1;
   private portrait = false;
@@ -91,23 +108,30 @@ export class World {
   private clothGeo!: THREE.PlaneGeometry;
   private clothMesh!: THREE.Mesh;
   private wind = new THREE.Vector3();
+  private clothReady = false;
+  private clothAcc = 0;
   private tableSet = new THREE.Group();
   private coarse = false;
   private teeTex!: TeeTextures;
-  private hero!: Tee;
+  private hero: Tee | null = null;
   private needle = new THREE.Group();
-  private band!: THREE.Mesh;
+  private band: THREE.Mesh | null = null;
   private bandY = 0;
   private stack = new THREE.Group();
   private stackTop = 0;
 
-  constructor(private canvas: HTMLCanvasElement, onReady: () => void) {
-    this.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
+  constructor(canvas: AnyCanvas, opts: WorldOptions, onReady: () => void) {
+    this.reduced = opts.reduced;
+    const coarse = opts.coarse;
     this.coarse = coarse;
+    this.width = opts.width;
+    this.height = opts.height;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: "high-performance" });
     const r = this.renderer;
-    r.setPixelRatio(Math.min(window.devicePixelRatio, coarse ? 1.5 : 2));
+    this.prMax = Math.min(opts.dpr || 1, coarse ? 1.5 : 1.75);
+    this.prMin = Math.min(this.prMax, 1) * 0.75;
+    this.pr = this.prMax;
+    r.setPixelRatio(this.pr);
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.NeutralToneMapping;
     r.shadowMap.enabled = true;
@@ -125,40 +149,22 @@ export class World {
       pmrem.dispose();
     });
 
+    // Only the opening shot is built now; build() adds the rest of the studio
+    // in small steps, so the page never freezes while it loads.
     this.buildLights(coarse);
     this.buildMaterials();
     this.buildGround();
     this.buildSpools();
     this.buildThread();
-    this.buildLoom();
-    this.buildClothSet();
-    this.buildTable();
 
     // Labels and prints use the site's web fonts: redraw once they're ready.
-    document.fonts.ready.then(() => this.textMaps.forEach((m) => m.draw()));
+    fontsReady().then(() => {
+      this.fontsLoaded = true;
+      this.textMaps.forEach((m) => m.draw());
+    });
 
     this.resize();
-    const ro = new ResizeObserver(() => this.resize());
-    ro.observe(canvas);
-    this.cleanup.push(() => ro.disconnect());
-
-    const onMove = (e: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      this.pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -(((e.clientY - rect.top) / rect.height) * 2 - 1));
-    };
-    window.addEventListener("pointermove", onMove, { passive: true });
-    this.cleanup.push(() => window.removeEventListener("pointermove", onMove));
-
-    const io = new IntersectionObserver(([entry]) => (entry.isIntersecting ? this.start() : this.stop()));
-    io.observe(canvas);
-    this.cleanup.push(() => io.disconnect());
-    const onVis = () => (document.hidden ? this.stop() : this.start());
-    document.addEventListener("visibilitychange", onVis);
-    this.cleanup.push(() => document.removeEventListener("visibilitychange", onVis));
-
-    this.update(0);
-    r.render(scene, this.camera);
-    onReady();
+    void this.build(onReady);
   }
 
   /* --- public ------------------------------------------------------------ */
@@ -167,11 +173,31 @@ export class World {
     this.target = clamp01(p);
     if (this.reduced) {
       this.p = this.target;
-      if (!this.running) this.frame(performance.now());
+      if (!this.running && this.ready) this.frame(performance.now());
     }
   }
 
+  /** The canvas's size in CSS pixels. */
+  setSize(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+    this.resize();
+  }
+
+  /** On screen and the tab is showing: run the loop; otherwise rest. */
+  setVisible(visible: boolean) {
+    this.visible = visible;
+    if (visible) this.start();
+    else this.stop();
+  }
+
+  /** Pointer position over the canvas, −1…1 on each axis. */
+  setPointer(x: number, y: number) {
+    this.pointer.set(x, y);
+  }
+
   dispose() {
+    this.disposed = true;
     this.stop();
     this.cleanup.forEach((fn) => fn());
     this.scene.traverse((o) => {
@@ -189,20 +215,20 @@ export class World {
   /* --- loop -------------------------------------------------------------- */
 
   private start() {
-    if (this.running || document.hidden) return;
+    if (this.running || !this.visible || !this.ready) return;
     this.running = true;
     this.last = performance.now();
     const loop = (now: number) => {
       if (!this.running) return;
       this.frame(now);
-      this.raf = requestAnimationFrame(loop);
+      this.raf = nextFrame(loop);
     };
-    this.raf = requestAnimationFrame(loop);
+    this.raf = nextFrame(loop);
   }
 
   private stop() {
     this.running = false;
-    cancelAnimationFrame(this.raf);
+    cancelFrame(this.raf);
   }
 
   private frame(now: number) {
@@ -215,10 +241,38 @@ export class World {
     }
     this.update(dt);
     this.renderer.render(this.scene, this.camera);
+    this.adapt(dt);
+  }
+
+  /** Drop the resolution a notch when frames run slow; raise it again when there's headroom. */
+  private adapt(dt: number) {
+    if (this.reduced || dt <= 0) return;
+    this.dtSum += dt;
+    if (++this.dtN < 40) return;
+    const avg = this.dtSum / this.dtN;
+    this.dtSum = 0;
+    this.dtN = 0;
+    let next = this.pr;
+    if (avg > 0.024 && this.pr > this.prMin) {
+      next = Math.max(this.prMin, this.pr - 0.25);
+      this.fastRuns = 0;
+    } else if (avg < 0.0125 && this.pr < this.prMax) {
+      if (++this.fastRuns >= 3) {
+        next = Math.min(this.prMax, this.pr + 0.25);
+        this.fastRuns = 0;
+      }
+    } else {
+      this.fastRuns = 0;
+    }
+    if (next !== this.pr) {
+      this.pr = next;
+      this.renderer.setPixelRatio(next);
+      this.resize();
+    }
   }
 
   private resize() {
-    const { clientWidth: w, clientHeight: h } = this.canvas;
+    const { width: w, height: h } = this;
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
@@ -229,6 +283,51 @@ export class World {
   }
 
   /* --- build ------------------------------------------------------------- */
+
+  /**
+   * Show the opening shot as soon as its shaders are compiled (without
+   * blocking), then build each remaining set in its own small step and warm
+   * up its shaders in the background, before the camera ever gets there.
+   */
+  private async build(onReady: () => void) {
+    const r = this.renderer;
+    await r.compileAsync(this.scene, this.camera);
+    if (this.disposed) return;
+    this.update(0);
+    r.render(this.scene, this.camera);
+    this.ready = true;
+    onReady();
+    this.start();
+
+    const warm = (obj: THREE.Object3D) => r.compileAsync(obj, this.camera, this.scene).then(() => undefined);
+    const upload = (...maps: THREE.Texture[]) => maps.forEach((m) => r.initTexture(m));
+    const steps: (() => unknown)[] = [
+      () => this.buildLoom(),
+      () => warm(this.loomSet),
+      () => this.buildClothSet(),
+      ...Array.from({ length: 6 }, () => () => this.settleCloth(25)),
+      () => warm(this.clothSet),
+      () => this.buildTable(),
+      async () => {
+        this.teeTex = await loadTeeTextures(this.coarse);
+      },
+      () => upload(this.teeTex.map),
+      () => upload(this.teeTex.normal),
+      () => upload(this.teeTex.stitch),
+      () => this.buildTee(),
+      () => this.buildStackTee(0),
+      () => this.buildStackTee(1),
+      () => this.buildStackTee(2),
+      () => this.buildBand(),
+      () => warm(this.tableSet),
+      () => warm(this.needle),
+    ];
+    for (const step of steps) {
+      await idle();
+      if (this.disposed) return;
+      await step();
+    }
+  }
 
   private buildLights(coarse: boolean) {
     this.scene.add(new THREE.HemisphereLight(0xfff8ee, 0xc8b89a, 0.85));
@@ -427,9 +526,7 @@ export class World {
     wall.receiveShadow = true;
     set.add(wall);
 
-    const c = document.createElement("canvas");
-    c.width = 1024;
-    c.height = Math.round(1024 * (H / W));
+    const c = makeCanvas(1024, Math.round(1024 * (H / W)));
     const map = new THREE.CanvasTexture(c);
     map.colorSpace = THREE.SRGBColorSpace;
     map.anisotropy = 8;
@@ -455,14 +552,19 @@ export class World {
     this.clothMesh = new THREE.Mesh(this.clothGeo, mat);
     this.clothMesh.castShadow = this.clothMesh.receiveShadow = true;
     set.add(this.clothMesh);
-    // settle into its folds before anyone sees it
-    for (let i = 0; i < 150; i++) {
-      this.wind.set(0.4, 0, -1.2);
-      this.cloth.step(this.wind, i > 4 ? this.clothGeo.attributes.normal.array : null);
-      this.syncCloth();
-    }
     set.position.x = CLOTH_X;
     this.scene.add(set);
+  }
+
+  /** Let the cloth fall into its folds before anyone sees it (a few steps at a time). */
+  private settleSteps = 0;
+  private settleCloth(n: number) {
+    for (let i = 0; i < n; i++, this.settleSteps++) {
+      this.wind.set(0.4, 0, -1.2);
+      this.cloth.step(this.wind, this.settleSteps > 4 ? this.clothGeo.attributes.normal.array : null);
+      if (i % 5 === 4 || i === n - 1) this.syncCloth();
+    }
+    if (this.settleSteps >= 150) this.clothReady = true;
   }
 
   private syncCloth() {
@@ -523,9 +625,11 @@ export class World {
     spool.position.set(-1.22, TABLE_Y + 0.14, -0.5);
     set.add(spool);
 
-    this.buildTee();
-    this.buildStack();
     this.buildNeedle();
+    this.stackTop = TABLE_Y + 3 * FOLDED.thick;
+    this.stack.position.set(0.9, 0, -0.22);
+    this.stack.rotation.y = -0.12;
+    set.add(this.stack);
 
     set.position.x = TABLE_X;
     this.scene.add(set);
@@ -533,28 +637,26 @@ export class World {
 
   /** The tee that gets sewn and folded. */
   private buildTee() {
-    this.teeTex = teeTextures(this.coarse);
-    this.hero = new Tee(this.teeTex, COLOR.loden, { coarse: this.coarse, label: tx.wovenLabel() });
-    this.textMaps.push({ draw: () => this.hero.setLabelMap(tx.wovenLabel()) });
-    this.hero.root.position.set(-0.24, TABLE_Y + 0.0018, 0.12);
-    this.tableSet.add(this.hero.root);
+    const hero = new Tee(this.teeTex, COLOR.loden, { coarse: this.coarse, label: tx.wovenLabel() });
+    if (this.fontsLoaded) hero.setLabelMap(tx.wovenLabel());
+    else this.textMaps.push({ draw: () => hero.setLabelMap(tx.wovenLabel()) });
+    hero.root.position.set(-0.24, TABLE_Y + 0.0018, 0.12);
+    this.tableSet.add(hero.root);
+    this.hero = hero;
   }
 
   /** Finished tees, folded the same way, waiting for the last one. */
-  private buildStack() {
-    const colors = [COLOR.ecru, COLOR.char, COLOR.clay];
-    colors.forEach((color, i) => {
-      const tee = new Tee(this.teeTex, color, { seed: 3 + i * 2, coarse: this.coarse });
-      tee.set({ join: 1, sew: 1, fold: [1, 1, 1, 1, 1], amp: AMP_PRESSED });
-      tee.root.position.set((i - 1) * 0.005, TABLE_Y + FOLDED.below + i * FOLDED.thick, 0.3);
-      tee.root.rotation.y = [0.012, -0.016, 0.007][i];
-      this.stack.add(tee.root);
-    });
-    this.stackTop = TABLE_Y + colors.length * FOLDED.thick;
-    this.stack.position.set(0.9, 0, -0.22);
-    this.stack.rotation.y = -0.12;
+  private buildStackTee(i: number) {
+    const color = [COLOR.ecru, COLOR.char, COLOR.clay][i];
+    const tee = new Tee(this.teeTex, color, { seed: 3 + i * 2, coarse: this.coarse });
+    tee.set({ join: 1, sew: 1, fold: [1, 1, 1, 1, 1], amp: AMP_PRESSED });
+    tee.root.position.set((i - 1) * 0.005, TABLE_Y + FOLDED.below + i * FOLDED.thick, 0.3);
+    tee.root.rotation.y = [0.012, -0.016, 0.007][i];
+    this.stack.add(tee.root);
+  }
 
-    // the paper band slips over the finished stack
+  /** The paper band that slips over the finished stack. */
+  private buildBand() {
     const bandMap = tx.band();
     const kraft = new THREE.MeshStandardMaterial({ map: bandMap, roughness: 0.85 });
     this.textMaps.push({
@@ -566,14 +668,14 @@ export class World {
     });
     const plain = new THREE.MeshStandardMaterial({ color: 0xc9ad85, roughness: 0.85 });
     const hidden = new THREE.MeshBasicMaterial({ visible: false });
-    const bandH = (colors.length + 1) * FOLDED.thick + 0.008;
-    this.band = new THREE.Mesh(new THREE.BoxGeometry(0.478, bandH, 0.14), [plain, plain, kraft, plain, hidden, hidden]);
+    const bandH = 4 * FOLDED.thick + 0.008;
+    const band = new THREE.Mesh(new THREE.BoxGeometry(0.478, bandH, 0.14), [plain, plain, kraft, plain, hidden, hidden]);
     this.bandY = TABLE_Y + bandH / 2;
-    this.band.position.y = this.bandY;
-    this.band.castShadow = true;
-    this.band.visible = false;
-    this.stack.add(this.band);
-    this.tableSet.add(this.stack);
+    band.position.y = this.bandY;
+    band.castShadow = true;
+    band.visible = false;
+    this.stack.add(band);
+    this.band = band;
   }
 
   private buildNeedle() {
@@ -613,6 +715,36 @@ export class World {
     this.thread.geometry.setDrawRange(0, visible);
 
     // 02 · Weaving, row by row.
+    if (this.weft.length) this.updateLoom(p, t);
+
+    // 03 · The cloth moves in a slow, gusty breeze (stepped at a steady 60 Hz).
+    if (this.clothReady && this.clothSet.visible && dt > 0) {
+      this.clothAcc = Math.min(this.clothAcc + dt, 0.05);
+      let stepped = false;
+      while (this.clothAcc >= 1 / 60) {
+        this.clothAcc -= 1 / 60;
+        const tt = t - this.clothAcc;
+        const gust = 0.55 + 0.45 * Math.sin(tt * 0.7) * Math.sin(tt * 0.23 + 1.3);
+        this.wind.set(0.5 * Math.sin(tt * 0.4), 0.05 * Math.sin(tt * 1.1), -1.6 * gust - 0.35);
+        this.cloth.step(this.wind, this.clothGeo.attributes.normal.array);
+        stepped = true;
+      }
+      if (stepped) this.syncCloth();
+    }
+
+    if (this.hero) this.updateTee(p, t);
+
+    // 06 · The band slips over the stack.
+    if (this.band) {
+      const r = seg(p, "ready");
+      this.band.visible = r > 0.02;
+      this.band.position.y = this.bandY + (1 - easeOut(sub(r, 0.05, 0.5))) * 0.42;
+    }
+
+    this.updateCamera(p);
+  }
+
+  private updateLoom(p: number, t: number) {
     const w = sub(seg(p, "weave"), 0, 0.92);
     const rowsF = w * this.weft.length;
     const full = Math.floor(rowsF);
@@ -642,15 +774,10 @@ export class World {
     } else {
       this.beater.position.set(0, this.weftY[this.weftY.length - 1] + 0.06, 0.034);
     }
+  }
 
-    // 03 · The cloth moves in a slow, gusty breeze.
-    if (this.clothSet.visible && dt > 0) {
-      const gust = 0.55 + 0.45 * Math.sin(t * 0.7) * Math.sin(t * 0.23 + 1.3);
-      this.wind.set(0.5 * Math.sin(t * 0.4), 0.05 * Math.sin(t * 1.1), -1.6 * gust - 0.35);
-      this.cloth.step(this.wind, this.clothGeo.attributes.normal.array);
-      this.syncCloth();
-    }
-
+  private updateTee(p: number, t: number) {
+    const hero = this.hero!;
     // 04 · Sleeves join the body, then each seam is sewn, tone on tone.
     // 05 · Lift and fold: sleeves, left, right, then the hem half under.
     const s = seg(p, "sew");
@@ -659,7 +786,7 @@ export class World {
     const amp = THREE.MathUtils.lerp(AMP_FLAT, AMP_PRESSED, easeInOut(sub(f, 0.02, 0.3)));
     if (this.tableSet.visible) {
       const sleeves = easeInOut(sub(f, 0.12, 0.3));
-      this.hero.set({
+      hero.set({
         join: easeInOut(sub(s, 0, 0.28)),
         sew: sewn,
         amp,
@@ -674,7 +801,7 @@ export class World {
     const stackRot = this.stack.rotation.y;
     const offset = new THREE.Vector3(0, 0, -0.3).applyAxisAngle(new THREE.Vector3(0, 1, 0), stackRot);
     const landed = new THREE.Vector3(this.stack.position.x - offset.x, this.stackTop + FOLDED.below + 0.001, this.stack.position.z - offset.z);
-    const root = this.hero.root;
+    const root = hero.root;
     root.position.lerpVectors(base, lifted, lift);
     if (move > 0) {
       root.position.lerpVectors(lifted, landed, move);
@@ -683,19 +810,12 @@ export class World {
     root.rotation.y = stackRot * move;
 
     const sewing = s > 0.26 && s < 0.96 && p < T.fold[0];
-    this.needle.visible = sewing && this.hero.stitchHead(sewn, amp, this.needle.position) !== null;
+    this.needle.visible = sewing && hero.stitchHead(sewn, amp, this.needle.position) !== null;
     if (this.needle.visible) {
       root.updateWorldMatrix(true, false);
       this.needle.position.applyMatrix4(root.matrixWorld);
       this.needle.position.y += Math.abs(Math.sin(t * 14)) * 0.02;
     }
-
-    // 06 · The band slips over the stack.
-    const r = seg(p, "ready");
-    this.band.visible = r > 0.02;
-    this.band.position.y = this.bandY + (1 - easeOut(sub(r, 0.05, 0.5))) * 0.42;
-
-    this.updateCamera(p);
   }
 
   private updateCamera(p: number) {

@@ -2,12 +2,12 @@ import type { Kind } from "./specs";
 
 /* Asks the photo worker for a garment image, once per garment/colour/size. */
 
-type Reply = { id: number; bitmap?: ImageBitmap; error?: string };
+type Reply = { id: number; blob?: Blob; error?: string };
 
 let worker: Worker | null | undefined;
 let seq = 0;
-const pending = new Map<number, (b: ImageBitmap | null) => void>();
-const cache = new Map<string, Promise<ImageBitmap | null>>();
+const pending = new Map<number, (url: string | null) => void>();
+const cache = new Map<string, Promise<string | null>>();
 
 function getWorker() {
   if (worker !== undefined) return worker;
@@ -17,7 +17,7 @@ function getWorker() {
     }
     const w = new Worker(new URL("./photo.worker.ts", import.meta.url), { type: "module" });
     w.onmessage = (e: MessageEvent<Reply>) => {
-      pending.get(e.data.id)?.(e.data.bitmap ?? null);
+      pending.get(e.data.id)?.(e.data.blob ? URL.createObjectURL(e.data.blob) : null);
       pending.delete(e.data.id);
     };
     w.onerror = () => {
@@ -39,13 +39,14 @@ export function photoScale(width: number) {
   return Math.min(5, Math.max(2, Math.ceil(((width || 240) * dpr) / 100) / 2));
 }
 
-export function photo(kind: Kind, color: string, hanger: boolean, scale: number): Promise<ImageBitmap | null> {
+/** An image URL for the garment photo (null if this browser can't make one). */
+export function photo(kind: Kind, color: string, hanger: boolean, scale: number): Promise<string | null> {
   const key = `${kind}|${color}|${hanger}|${scale}`;
   let p = cache.get(key);
   if (!p) {
     const w = getWorker();
     p = w
-      ? new Promise<ImageBitmap | null>((resolve) => {
+      ? new Promise<string | null>((resolve) => {
           const id = ++seq;
           pending.set(id, resolve);
           w.postMessage({ id, kind, color, hanger, scale });

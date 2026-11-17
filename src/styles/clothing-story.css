@@ -17,6 +17,12 @@
   overflow: hidden;
 }
 
+/* holds the canvas, which is created in script (it may be handed to a worker) */
+.st__stage {
+  position: absolute;
+  inset: 0;
+}
+
 .st__canvas {
   position: absolute;
   inset: 0;

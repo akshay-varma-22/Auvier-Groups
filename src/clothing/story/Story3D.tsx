@@ -15,8 +15,89 @@ import { storyHero } from "../content";
 import { Garment } from "../Garments";
 import { QuickNotify } from "../Hero";
 import { CHAPTERS, T, type Chapter } from "./timeline";
+import type { WorldOptions } from "./World";
 
-type WorldLike = { setProgress(p: number): void; dispose(): void };
+/** The studio's controls, whether it runs in a worker or on the page. */
+type Studio = {
+  setProgress(p: number): void;
+  setSize(width: number, height: number): void;
+  setVisible(visible: boolean): void;
+  setPointer(x: number, y: number): void;
+  dispose(): void;
+};
+
+/**
+ * Starts the 3D studio. Where the browser allows it, the studio renders in a
+ * Web Worker on an OffscreenCanvas, so its build work and GPU driver stalls
+ * can never freeze scrolling; otherwise it runs on the page as before.
+ */
+function startStudio(canvas: HTMLCanvasElement, opts: WorldOptions, onStatus: (s: "ready" | "failed") => void): Studio {
+  if (typeof canvas.transferControlToOffscreen === "function" && typeof Worker !== "undefined") {
+    let worker: Worker | null = null;
+    try {
+      worker = new Worker(new URL("./world.worker.ts", import.meta.url), { type: "module" });
+    } catch {
+      worker = null;
+    }
+    if (worker) {
+      const w = worker;
+      const off = canvas.transferControlToOffscreen();
+      w.onmessage = (e: MessageEvent<string>) => onStatus(e.data === "ready" ? "ready" : "failed");
+      w.onerror = () => onStatus("failed");
+      w.postMessage({ type: "init", canvas: off, opts }, [off]);
+      return {
+        setProgress: (value) => w.postMessage({ type: "progress", value }),
+        setSize: (width, height) => w.postMessage({ type: "size", width, height }),
+        setVisible: (value) => w.postMessage({ type: "visible", value }),
+        setPointer: (x, y) => w.postMessage({ type: "pointer", x, y }),
+        dispose: () => w.terminate(),
+      };
+    }
+  }
+
+  // On the page: three.js loads as its own chunk, after the page.
+  const state = { progress: 0, width: opts.width, height: opts.height, visible: false, x: 0, y: 0 };
+  let world: import("./World").World | null = null;
+  let gone = false;
+  import("./World")
+    .then(({ World }) => {
+      if (gone) return;
+      try {
+        world = new World(canvas, opts, () => onStatus("ready"));
+        world.setProgress(state.progress);
+        world.setSize(state.width, state.height);
+        world.setPointer(state.x, state.y);
+        world.setVisible(state.visible);
+      } catch {
+        onStatus("failed");
+      }
+    })
+    .catch(() => onStatus("failed"));
+  return {
+    setProgress: (v) => {
+      state.progress = v;
+      world?.setProgress(v);
+    },
+    setSize: (w, h) => {
+      state.width = w;
+      state.height = h;
+      world?.setSize(w, h);
+    },
+    setVisible: (v) => {
+      state.visible = v;
+      world?.setVisible(v);
+    },
+    setPointer: (x, y) => {
+      state.x = x;
+      state.y = y;
+      world?.setPointer(x, y);
+    },
+    dispose: () => {
+      gone = true;
+      world?.dispose();
+    },
+  };
+}
 
 /** A chapter caption: blurs and rises in, holds, then drifts away. */
 function Caption({ ch, p }: { ch: Chapter; p: MotionValue<number> }) {
@@ -144,35 +225,70 @@ function Still() {
 
 export function Story3D() {
   const ref = useRef<HTMLElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const world = useRef<WorldLike | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const studio = useRef<Studio | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "failed">("loading");
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end end"] });
 
-  useMotionValueEvent(p, "change", (v) => world.current?.setProgress(v));
+  useMotionValueEvent(p, "change", (v) => studio.current?.setProgress(v));
 
   useEffect(() => {
-    let disposed = false;
-    let instance: WorldLike | null = null;
-    // three.js and the studio load as their own chunk, after the page.
-    import("./World")
-      .then(({ World }) => {
-        if (disposed || !canvasRef.current) return;
-        try {
-          instance = new World(canvasRef.current, () => setStatus("ready"));
-          instance.setProgress(p.get());
-          world.current = instance;
-        } catch {
-          setStatus("failed");
-        }
-      })
-      .catch(() => setStatus("failed"));
+    const stage = stageRef.current;
+    if (!stage) return;
+    // a fresh canvas each time: a canvas can only be handed to a worker once
+    const canvas = document.createElement("canvas");
+    canvas.className = "st__canvas";
+    stage.appendChild(canvas);
+    canvasRef.current = canvas;
+
+    let live = true;
+    const s = startStudio(
+      canvas,
+      {
+        width: canvas.clientWidth,
+        height: canvas.clientHeight,
+        dpr: window.devicePixelRatio || 1,
+        reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        coarse: window.matchMedia("(pointer: coarse)").matches,
+      },
+      (next) => live && setStatus(next),
+    );
+    s.setProgress(p.get());
+    studio.current = s;
+
+    let inView = false;
+    const sync = () => s.setVisible(inView && !document.hidden);
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      sync();
+    });
+    io.observe(canvas);
+    const ro = new ResizeObserver(() => s.setSize(canvas.clientWidth, canvas.clientHeight));
+    ro.observe(canvas);
+    // the canvas fills the viewport while it's in view, so no layout reads are needed
+    const onMove = (e: PointerEvent) => {
+      if (inView) s.setPointer((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1));
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("visibilitychange", sync);
+
     return () => {
-      disposed = true;
-      instance?.dispose();
-      world.current = null;
+      live = false;
+      io.disconnect();
+      ro.disconnect();
+      window.removeEventListener("pointermove", onMove);
+      document.removeEventListener("visibilitychange", sync);
+      s.dispose();
+      studio.current = null;
+      canvasRef.current = null;
+      canvas.remove();
     };
   }, [p]);
+
+  useEffect(() => {
+    canvasRef.current?.classList.toggle("is-ready", status === "ready");
+  }, [status]);
 
   const cue = useTransform(p, [0, 0.03], [1, 0]);
   // the finale's caption sits above the stack, so the veil can lift
@@ -181,7 +297,7 @@ export function Story3D() {
   return (
     <section ref={ref} id="story" className="st" aria-label="How Auvier Clothing is made">
       <div className="st__sticky">
-        <canvas ref={canvasRef} className={status === "ready" ? "st__canvas is-ready" : "st__canvas"} aria-hidden="true" />
+        <div ref={stageRef} className="st__stage" aria-hidden="true" />
         {status === "failed" && <Still />}
         <motion.div className="st__veil" style={{ opacity: veil }} aria-hidden="true" />
 

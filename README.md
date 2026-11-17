@@ -68,13 +68,18 @@ Framer Motion (`motion`):
 
 - `timeline.ts`: when each scene and caption happens, and the caption copy.
 - `World.ts`: the 3D studio (sets, camera path, lighting).
-- `tee.ts`: the tee — pattern pieces, its textures (relief, stitching, label), the sewing and the
-  folds.
+- `tee.ts` / `teePattern.ts`: the tee — pattern pieces, its textures (relief, stitching, label),
+  the sewing and the folds.
+- `world.worker.ts`: runs the whole studio in a Web Worker on an OffscreenCanvas, so its
+  build work and GPU shader compiles never block scrolling. `Story3D.tsx` falls back to running
+  it on the page in browsers that can't do this. The tee textures (`tee.worker.ts`) and the
+  garment photos (`fabric/photo.worker.ts`) are made in workers too.
 - `textures.ts`: every texture, drawn procedurally (no image downloads).
 - `Story3D.tsx`: the sticky canvas, captions, chapter rail, loading veil and no-WebGL fallback.
 
-three.js loads as its own chunk after the page. Reduced-motion visitors get the same story with
-no idle animation.
+three.js loads as its own chunk after the page, and the studio builds itself scene by scene in
+the background, lowering its resolution if a GPU can't keep up. Reduced-motion visitors get the
+same story with no idle animation.
 
 Below the story: the clothing rail and colourway cards (`Rail.tsx`, `Sections.tsx`), the fabric
 swatches and the early-access form.

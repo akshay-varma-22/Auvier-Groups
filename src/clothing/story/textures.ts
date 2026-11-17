@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { drawMark, type Ctx2D } from "../fabric/mark";
+import { ctx2d, makeCanvas, type AnyCanvas } from "./env";
 
 /* Procedural textures, drawn on canvases so the 3D story needs no image
    downloads: fabric, yarn twist, weave relief, oak, the tee, folded tees,
@@ -8,13 +10,11 @@ let seed = 11;
 const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 
 const canvas = (w: number, h: number) => {
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  return [c, c.getContext("2d")!] as const;
+  const c = makeCanvas(w, h);
+  return [c, ctx2d(c)] as const;
 };
 
-const colorTex = (c: HTMLCanvasElement) => {
+const colorTex = (c: AnyCanvas) => {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
@@ -22,7 +22,7 @@ const colorTex = (c: HTMLCanvasElement) => {
 };
 
 /** Faint yarn slubs over a flat colour. */
-function slubs(ctx: CanvasRenderingContext2D, w: number, h: number, count: number, alpha = 1) {
+function slubs(ctx: Ctx2D, w: number, h: number, count: number, alpha = 1) {
   seed = 11;
   for (let i = 0; i < count; i++) {
     const y = rand() * h;
@@ -124,8 +124,8 @@ export function oak() {
 }
 
 /** The hanging cloth: colour, slubs, hems and a sewn-on woven label. */
-export function drawHangingCloth(c: HTMLCanvasElement, color: string, colorName: string) {
-  const ctx = c.getContext("2d")!;
+export function drawHangingCloth(c: AnyCanvas, color: string, colorName: string) {
+  const ctx = ctx2d(c);
   const { width: w, height: h } = c;
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, w, h);
@@ -142,23 +142,8 @@ export function drawHangingCloth(c: HTMLCanvasElement, color: string, colorName:
   drawLabel(ctx, w * 0.6, h - 46 - w * 0.126 - 34, w * 0.3, `CLOTHING · ${colorName.toUpperCase()}`);
 }
 
-export function drawMark(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, ink: string, dot: string) {
-  ctx.strokeStyle = ink;
-  ctx.lineWidth = s * 0.3;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.beginPath();
-  ctx.moveTo(x - s, y + s);
-  ctx.lineTo(x, y - s);
-  ctx.lineTo(x + s, y + s);
-  ctx.stroke();
-  ctx.fillStyle = dot;
-  ctx.beginPath();
-  ctx.arc(x, y + s * 0.35, s * 0.24, 0, Math.PI * 2);
-  ctx.fill();
-}
 
-function drawLabel(ctx: CanvasRenderingContext2D, lx: number, ly: number, lw: number, line: string) {
+function drawLabel(ctx: Ctx2D, lx: number, ly: number, lw: number, line: string) {
   const lh = lw * 0.42;
   const grad = ctx.createLinearGradient(lx, ly, lx, ly + lh);
   grad.addColorStop(0, "#f3ecdd");

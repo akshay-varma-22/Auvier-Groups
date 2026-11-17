@@ -386,8 +386,9 @@ export function Garment({
   prefetch?: string[];
 }) {
   const wrap = useRef<HTMLSpanElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
+  const [src, setSrc] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [flat, setFlat] = useState(true);
   const warm = prefetch?.join();
 
   useEffect(() => {
@@ -399,13 +400,9 @@ export function Garment({
         if (!entry.isIntersecting) return;
         io.disconnect();
         const scale = photoScale(el.offsetWidth);
-        photo(kind, color, hanger, scale).then((bitmap) => {
-          const c = canvas.current;
-          if (!live || !bitmap || !c) return;
-          c.width = bitmap.width;
-          c.height = bitmap.height;
-          c.getContext("2d")?.drawImage(bitmap, 0, 0);
-          setReady(true);
+        photo(kind, color, hanger, scale).then((url) => {
+          if (!live || !url) return;
+          setSrc(url);
           warm?.split(",").forEach((hex) => hex !== color && photo(kind, hex, hanger, scale));
         });
       },
@@ -418,6 +415,13 @@ export function Garment({
     };
   }, [kind, color, hanger, warm]);
 
+  // once the photo has faded in, drop the drawn flat (its lighting filters are costly to keep)
+  useEffect(() => {
+    if (!ready) return;
+    const t = window.setTimeout(() => setFlat(false), 650);
+    return () => window.clearTimeout(t);
+  }, [ready]);
+
   return (
     <span
       ref={wrap}
@@ -427,8 +431,8 @@ export function Garment({
       aria-hidden={title ? undefined : true}
       style={{ aspectRatio: hanger ? "200 / 286" : "200 / 240" }}
     >
-      <GarmentFlat kind={kind} color={color} hanger={hanger} className="garment__flat" />
-      <canvas ref={canvas} className="garment__photo" aria-hidden="true" />
+      {flat && <GarmentFlat kind={kind} color={color} hanger={hanger} className="garment__flat" />}
+      {src && <img className="garment__photo" src={src} alt="" decoding="async" draggable={false} onLoad={() => setReady(true)} />}
     </span>
   );
 }

@@ -349,7 +349,7 @@ function hexRgb(hex: string): [number, number, number] {
 const css = (rgb: number[], a = 1) => `rgba(${rgb.map((c) => Math.round(Math.min(1, Math.max(0, c)) * 255)).join(",")},${a})`;
 const mixRgb = (a: number[], b: number[], t: number) => a.map((c, i) => c + (b[i] - c) * t);
 
-export function render(req: PhotoRequest): ImageBitmap {
+export function render(req: PhotoRequest): OffscreenCanvas {
   const geo = geometry(req.kind, req.hanger, req.scale);
   const { w, h, U, oy, spec, M, S, K, D, T } = geo;
   const srgb = hexRgb(req.color);
@@ -458,7 +458,7 @@ export function render(req: PhotoRequest): ImageBitmap {
   }
 
   if (req.hanger && req.kind === "trouser") drawClipHanger(g);
-  return out.c.transferToImageBitmap();
+  return out.c;
 }
 
 /* --- hangers --------------------------------------------------------------- */
