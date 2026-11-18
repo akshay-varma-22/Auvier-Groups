@@ -119,6 +119,8 @@ html:has(body.site-group) {
 
 /* --- Division "doors" ------------------------------------------------------ */
 .doors {
+  /* the card backgrounds size themselves to the row (cqw), not to each card */
+  container-type: inline-size;
   display: flex;
   gap: clamp(0.75rem, 1.4vw, 1.25rem);
   height: clamp(540px, 74vh, 780px);
@@ -135,13 +137,34 @@ html:has(body.site-group) {
   padding: clamp(1.25rem, 2.4vw, 2rem);
   overflow: hidden;
   isolation: isolate;
+  /* keep each card's repaints inside itself */
+  contain: layout paint;
   border-radius: var(--r-xl);
-  transition:
-    flex-grow 0.9s var(--ease-out),
-    box-shadow 0.6s var(--ease-out);
+  /* an even ease-out: no sudden jump followed by a long crawl */
+  transition: flex-grow 0.75s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* The card's glow lives on its own layer. On wide screens that layer is
+   sized to the whole row, so as a card widens the browser simply reveals
+   more of an already-painted layer instead of repainting it every frame
+   (which made the expansion stall, then jump). */
+.door::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
 @media (hover: hover) and (min-width: 900px) {
+  .door::before {
+    inset: 0 auto;
+    left: 50%;
+    width: 66cqw;
+    translate: -50% 0;
+    will-change: transform;
+  }
+
   .doors:hover .door {
     flex-grow: 0.8;
   }
@@ -156,10 +179,13 @@ html:has(body.site-group) {
   --fg-2: oklch(0.958 0.012 85 / 0.72);
   --mark-dot: var(--ember);
   color: var(--bone-0);
+  background: var(--ink-0);
+}
+
+.door--tech::before {
   background:
-    radial-gradient(70% 60% at 78% 32%, oklch(0.45 0.15 38 / 0.55), transparent 70%),
-    radial-gradient(60% 60% at 10% 100%, oklch(0.3 0.08 320 / 0.5), transparent 70%),
-    var(--ink-0);
+    radial-gradient(64% 60% at 80% 32%, oklch(0.45 0.15 38 / 0.55), transparent 70%),
+    radial-gradient(56% 60% at 16% 100%, oklch(0.3 0.08 320 / 0.5), transparent 70%);
 }
 
 .door--clothing {
@@ -167,13 +193,11 @@ html:has(body.site-group) {
   --fg-2: oklch(0.24 0.012 60 / 0.72);
   --mark-dot: var(--loden);
   color: var(--char);
-  background:
-    radial-gradient(70% 60% at 50% 40%, oklch(0.97 0.012 85 / 0.9), transparent 70%),
-    var(--oat);
+  background: var(--oat);
 }
 
-.door:hover {
-  box-shadow: 0 40px 80px -40px oklch(0.2 0.03 60 / 0.45);
+.door--clothing::before {
+  background: radial-gradient(64% 60% at 50% 40%, oklch(0.97 0.012 85 / 0.9), transparent 70%);
 }
 
 .door__top {
@@ -218,6 +242,7 @@ html:has(body.site-group) {
 }
 
 .door__bp {
+  will-change: transform;
   width: min(92%, 430px);
   transform: rotate(-2.5deg) scale(0.96);
   transition: transform 1s var(--ease-out);
@@ -234,6 +259,7 @@ html:has(body.site-group) {
 }
 
 .door__g {
+  will-change: transform;
   position: absolute;
   width: 44%;
   height: auto;

@@ -39,8 +39,23 @@ function CyclingPreview() {
   const inView = useInView(ref);
   useEffect(() => {
     if (reduced || !inView) return;
-    const t = window.setInterval(() => setStage((s) => (s + 1) % 3), 3600);
-    return () => window.clearInterval(t);
+    // Hold the current screen while the cards are hovered: changing it mid-way
+    // through the card's expansion made the animation stutter. A flag, not
+    // state, so hovering itself doesn't re-render anything.
+    const doors = ref.current?.closest(".doors");
+    let held = false;
+    const hold = () => (held = true);
+    const release = () => (held = false);
+    doors?.addEventListener("pointerenter", hold);
+    doors?.addEventListener("pointerleave", release);
+    const t = window.setInterval(() => {
+      if (!held) setStage((s) => (s + 1) % 3);
+    }, 3600);
+    return () => {
+      window.clearInterval(t);
+      doors?.removeEventListener("pointerenter", hold);
+      doors?.removeEventListener("pointerleave", release);
+    };
   }, [reduced, inView]);
   return (
     <div ref={ref} className="cycling-preview">
