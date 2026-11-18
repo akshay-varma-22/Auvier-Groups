@@ -31,7 +31,8 @@ type Studio = {
  * can never freeze scrolling; otherwise it runs on the page as before.
  */
 function startStudio(canvas: HTMLCanvasElement, opts: WorldOptions, onStatus: (s: "ready" | "failed") => void): Studio {
-  if (typeof canvas.transferControlToOffscreen === "function" && typeof Worker !== "undefined") {
+  const onPage = /[?&]perf\b/.test(window.location.search) && /[?&]page\b/.test(window.location.search);
+  if (!onPage && typeof canvas.transferControlToOffscreen === "function" && typeof Worker !== "undefined") {
     let worker: Worker | null = null;
     try {
       worker = new Worker(new URL("./world.worker.ts", import.meta.url), { type: "module" });
@@ -41,7 +42,10 @@ function startStudio(canvas: HTMLCanvasElement, opts: WorldOptions, onStatus: (s
     if (worker) {
       const w = worker;
       const off = canvas.transferControlToOffscreen();
-      w.onmessage = (e: MessageEvent<string>) => onStatus(e.data === "ready" ? "ready" : "failed");
+      w.onmessage = (e: MessageEvent<string | { type: "stats" }>) => {
+        if (typeof e.data === "string") onStatus(e.data === "ready" ? "ready" : "failed");
+        else console.info("[3d]", JSON.stringify(e.data));
+      };
       w.onerror = () => onStatus("failed");
       w.postMessage({ type: "init", canvas: off, opts }, [off]);
       return {
@@ -62,7 +66,7 @@ function startStudio(canvas: HTMLCanvasElement, opts: WorldOptions, onStatus: (s
     .then(({ World }) => {
       if (gone) return;
       try {
-        world = new World(canvas, opts, () => onStatus("ready"));
+        world = new World(canvas, opts, () => onStatus("ready"), (stats) => console.info("[3d]", JSON.stringify(stats)));
         world.setProgress(state.progress);
         world.setSize(state.width, state.height);
         world.setPointer(state.x, state.y);
@@ -173,12 +177,13 @@ function StoryHero({ p }: { p: MotionValue<number> }) {
 /** Chapter rail: where you are in the story, and a way to jump. */
 function Rail({ p, sectionRef }: { p: MotionValue<number>; sectionRef: RefObject<HTMLElement | null> }) {
   const [active, setActive] = useState(-1);
+  const current = useRef(-1);
   useMotionValueEvent(p, "change", (v) => {
     let idx = -1;
     CHAPTERS.forEach((c, i) => {
       if (v >= c.range[0] - 0.01) idx = i;
     });
-    setActive(idx);
+    if (idx !== current.current) setActive((current.current = idx));
   });
   const fill = useTransform(p, [T.thread[0], 1], [0, 1]);
   const railOpacity = useTransform(p, [T.intro[1] - 0.02, T.intro[1] + 0.01], [0, 1]);
@@ -248,6 +253,14 @@ export function Story3D() {
         dpr: window.devicePixelRatio || 1,
         reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
         coarse: window.matchMedia("(pointer: coarse)").matches,
+        stats: /[?&]perf\b/.test(window.location.search),
+        debug: /[?&]perf\b/.test(window.location.search)
+          ? {
+              aa: !/[?&]noaa\b/.test(window.location.search),
+              keep: !/[?&]nokeep\b/.test(window.location.search),
+              always: /[?&]always\b/.test(window.location.search),
+            }
+          : undefined,
       },
       (next) => live && setStatus(next),
     );

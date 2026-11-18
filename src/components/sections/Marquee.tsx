@@ -4,6 +4,7 @@ import {
   useMotionValue,
   useScroll,
   useSpring,
+  useInView,
   useTransform,
   useVelocity,
 } from "motion/react";
@@ -26,9 +27,11 @@ function VelocityRow({ base, children }: { base: number; children: ReactNode }) 
   const factor = useTransform(velocity, [0, 1000], [0, 4], { clamp: false });
   const direction = useRef(1);
   const translate = useTransform(x, (v) => `${wrap(-100 / COPIES, 0, v)}%`);
+  const row = useRef<HTMLDivElement>(null);
+  const visible = useInView(row, { margin: "100px" });
 
   useAnimationFrame((_, delta) => {
-    if (reduced) return;
+    if (reduced || !visible) return;
     const f = factor.get();
     if (f < 0) direction.current = -1;
     else if (f > 0) direction.current = 1;
@@ -37,7 +40,7 @@ function VelocityRow({ base, children }: { base: number; children: ReactNode }) 
   });
 
   return (
-    <div className="marquee__row">
+    <div ref={row} className="marquee__row">
       <motion.div className="marquee__track" style={{ x: translate }}>
         {Array.from({ length: COPIES }, (_, i) => (
           <span key={i} className="marquee__group" aria-hidden={i > 0}>

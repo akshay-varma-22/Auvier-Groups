@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useSpring, useTransform, type Variants } from "motion/react";
+import { motion, useInView, useMotionValue, useSpring, useTransform, type Variants } from "motion/react";
 import { useRef, useState, type PointerEvent } from "react";
 import { hero } from "../../content";
 import { EASE_OUT, useIntroReady } from "../../lib/intro";
@@ -24,6 +24,8 @@ export function Hero() {
   const [paused, setPaused] = useState(false);
   const [cycle, setCycle] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
+  // the preview only cycles while the hero is on screen (no re-renders while you read further down)
+  const inView = useInView(sectionRef);
 
   const px = useMotionValue(0);
   const py = useMotionValue(0);
@@ -44,7 +46,7 @@ export function Hero() {
   };
 
   const state = ready ? "show" : "hidden";
-  const autoplay = !reduced && ready && !paused;
+  const autoplay = !reduced && ready && !paused && inView;
 
   return (
     <section ref={sectionRef} id="top" className="hero" onPointerMove={onPointerMove} aria-labelledby="hero-title">

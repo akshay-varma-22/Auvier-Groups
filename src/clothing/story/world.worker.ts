@@ -18,7 +18,7 @@ self.onmessage = (e: MessageEvent<Msg>) => {
   const m = e.data;
   if (m.type === "init") {
     try {
-      world = new World(m.canvas, m.opts, () => port.postMessage("ready"));
+      world = new World(m.canvas, m.opts, () => port.postMessage("ready"), (stats) => port.postMessage({ type: "stats", ...stats }));
     } catch {
       port.postMessage("failed");
     }

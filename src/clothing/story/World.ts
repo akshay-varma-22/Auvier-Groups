@@ -20,7 +20,9 @@ const GROUND_Y = -1.25;
 type Shot = { pos: THREE.Vector3; look: THREE.Vector3 };
 
 /** What the host page knows that the studio can't look up itself (it may run in a worker). */
-export type WorldOptions = { width: number; height: number; dpr: number; reduced: boolean; coarse: boolean };
+export type WorldOptions = { width: number; height: number; dpr: number; reduced: boolean; coarse: boolean; stats?: boolean; debug?: { aa?: boolean; keep?: boolean; always?: boolean } };
+/** Once-a-second frame report, for diagnosing smoothness (only with ?perf in the URL). */
+export type WorldStats = { fps: number; cpu: number; cpuMax: number; gap: number; gapMax: number; pr: number };
 const shot = (px: number, py: number, pz: number, lx: number, ly: number, lz: number): Shot => ({
   pos: new THREE.Vector3(px, py, pz),
   look: new THREE.Vector3(lx, ly, lz),
@@ -77,6 +79,9 @@ export class World {
   private dtN = 0;
   private fastRuns = 0;
   private dtMin = Infinity;
+  private always = false;
+  private onStats: ((s: WorldStats) => void) | null = null;
+  private stat = { frames: 0, cpu: 0, cpuMax: 0, gap: 0, gapMax: 0, since: 0 };
   /** Estimated time between display frames (a 30 Hz remote screen isn't a slow GPU). */
   private vsync = 1 / 60;
   /** Something changed that needs a fresh frame (size, new objects, textures). */
@@ -125,13 +130,21 @@ export class World {
   private stack = new THREE.Group();
   private stackTop = 0;
 
-  constructor(canvas: AnyCanvas, opts: WorldOptions, onReady: () => void) {
+  constructor(canvas: AnyCanvas, opts: WorldOptions, onReady: () => void, onStats?: (s: WorldStats) => void) {
+    if (opts.stats && onStats) this.onStats = onStats;
     this.reduced = opts.reduced;
     const coarse = opts.coarse;
     this.coarse = coarse;
     this.width = opts.width;
     this.height = opts.height;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: "high-performance" });
+    const dbg = opts.debug ?? {};
+    this.always = !!dbg.always;
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: dbg.aa ?? true,
+      preserveDrawingBuffer: dbg.keep ?? true,
+      powerPreference: "high-performance",
+    });
     const r = this.renderer;
     this.prMax = Math.min(opts.dpr || 1, coarse ? 1.25 : 1.5);
     this.prMin = Math.min(this.prMax, 1) * 0.75;
@@ -178,10 +191,6 @@ export class World {
 
   setProgress(p: number) {
     this.target = clamp01(p);
-    if (this.reduced) {
-      this.p = this.target;
-      this.dirty = true;
-    }
     this.start();
   }
 
@@ -247,8 +256,9 @@ export class World {
   }
 
   /** Draws one frame if anything changed; returns false when the picture is at rest. */
-  private frame(now: number) {
-    const dt = Math.min(0.05, (now - this.last) / 1000 || 0);
+  private frame(_now: number) {
+    const now = performance.now();
+    const dt = Math.min(0.05, Math.max(0, (now - this.last) / 1000));
     this.last = now;
     // Only draw when the picture would change: while scrolling (and the dolly
     // settles), while the pointer parallax eases, while the cloth moves in its
@@ -257,18 +267,41 @@ export class World {
     const easing = Math.abs(this.target - this.p) > 1e-5;
     const leaning = this.pointer.distanceToSquared(this.pointerSmooth) > 1e-6;
     const breeze = !this.reduced && this.clothReady && this.clothSet.visible;
-    if (!easing && !leaning && !breeze && !this.dirty) return false;
+    if (!easing && !leaning && !breeze && !this.dirty && !this.always) return false;
     this.dirty = false;
-    if (!this.reduced) {
-      this.time += dt;
-      // ease the scrubbed progress so scrolling feels like a dolly, not a jump
-      this.p += (this.target - this.p) * (1 - Math.exp(-dt * 5.5));
-      if (Math.abs(this.target - this.p) <= 1e-5) this.p = this.target;
-    }
+    if (!this.reduced) this.time += dt;
+    // Ease the scrubbed progress so scrolling feels like a smooth dolly. With
+    // reduced motion the blend is brief, just enough to smooth out the steps
+    // of a wheel that isn't animated by the browser.
+    this.p += (this.target - this.p) * (1 - Math.exp(-dt * (this.reduced ? 14 : 8)));
+    if (Math.abs(this.target - this.p) <= 1e-5) this.p = this.target;
+    const t0 = performance.now();
     this.update(dt);
     this.renderer.render(this.scene, this.camera);
     this.adapt(dt);
+    if (this.onStats) this.report(now, performance.now() - t0, dt * 1000);
     return true;
+  }
+
+  private report(now: number, cpu: number, gap: number) {
+    const s = this.stat;
+    if (!s.since) s.since = now;
+    s.frames++;
+    s.cpu += cpu;
+    s.cpuMax = Math.max(s.cpuMax, cpu);
+    s.gap += gap;
+    s.gapMax = Math.max(s.gapMax, gap);
+    if (now - s.since < 1000) return;
+    const secs = (now - s.since) / 1000;
+    this.onStats!({
+      fps: Math.round(s.frames / secs),
+      cpu: +(s.cpu / s.frames).toFixed(1),
+      cpuMax: +s.cpuMax.toFixed(1),
+      gap: +(s.gap / s.frames).toFixed(1),
+      gapMax: +s.gapMax.toFixed(1),
+      pr: this.pr,
+    });
+    this.stat = { frames: 0, cpu: 0, cpuMax: 0, gap: 0, gapMax: 0, since: now };
   }
 
   /** Drop the resolution a notch when frames run slow; raise it again when there's headroom. */

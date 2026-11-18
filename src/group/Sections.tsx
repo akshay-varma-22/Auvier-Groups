@@ -1,5 +1,5 @@
-import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
+import { motion, useInView, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { companies, group } from "../brand";
 import { Garment } from "../clothing/Garments";
 import { BuildPreview } from "../components/hero/BuildPreview";
@@ -34,12 +34,19 @@ function CompanyLockup({ dot, label, size = 30 }: { dot: MarkDot; label: string;
 function CyclingPreview() {
   const [stage, setStage] = useState(2);
   const reduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  // only cycles while it's on screen, so it never re-renders while you scroll elsewhere
+  const inView = useInView(ref);
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || !inView) return;
     const t = window.setInterval(() => setStage((s) => (s + 1) % 3), 3600);
     return () => window.clearInterval(t);
-  }, [reduced]);
-  return <BuildPreview stage={stage} />;
+  }, [reduced, inView]);
+  return (
+    <div ref={ref} className="cycling-preview">
+      <BuildPreview stage={stage} />
+    </div>
+  );
 }
 
 export function GroupHero() {

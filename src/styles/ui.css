@@ -851,8 +851,13 @@ a:hover > .roll::after {
 }
 
 /* --- Scroll-revealed paragraph -------------------------------------------- */
+/* Each word fades and rises from its index (--i) as the paragraph's progress
+   (--p, 0–1 across --n words) passes it: one variable drives every word. */
 .scroll-words__word {
+  --t: clamp(0, calc(var(--p, 0) * var(--n, 1) - var(--i, 0)), 1);
   display: inline-block;
+  opacity: calc(0.14 + 0.86 * var(--t));
+  transform: translateY(calc((1 - var(--t)) * 8px));
 }
 
 /* --- Garment drawings (Clothing and group pages) ---------------------------- */

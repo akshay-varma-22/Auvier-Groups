@@ -10,9 +10,11 @@ export function Process() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 62%", "end 62%"] });
   const rail = useSpring(scrollYProgress, { stiffness: 120, damping: 28, restDelta: 0.001 });
   const [active, setActive] = useState(0);
+  const current = useRef(0);
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    setActive(Math.max(0, Math.min(process.length - 1, Math.floor(v * process.length))));
+    const next = Math.max(0, Math.min(process.length - 1, Math.floor(v * process.length)));
+    if (next !== current.current) setActive((current.current = next));
   });
 
   return (

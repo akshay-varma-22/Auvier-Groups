@@ -1,23 +1,14 @@
-import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
-import { useRef } from "react";
+import { motion, useScroll } from "motion/react";
+import { useRef, type CSSProperties } from "react";
 import { parseAccents, stripAccents } from "./SplitText";
 
-function Word({ children, accent, progress, range }: {
-  children: string;
-  accent: boolean;
-  progress: MotionValue<number>;
-  range: [number, number];
-}) {
-  const opacity = useTransform(progress, range, [0.14, 1]);
-  const y = useTransform(progress, range, [8, 0]);
-  return (
-    <motion.span className={accent ? "scroll-words__word accent" : "scroll-words__word"} style={{ opacity, y }}>
-      {children}
-    </motion.span>
-  );
-}
-
-/** A paragraph that "writes itself" word by word as it scrolls through view. */
+/**
+ * A paragraph that "writes itself" word by word as it scrolls through view.
+ *
+ * One scroll value drives the whole paragraph through a single CSS variable
+ * (--p); each word works out its own fade from its index in CSS. That's one
+ * style write per frame instead of two animated values per word.
+ */
 export function ScrollWords({ text, className }: { text: string; className?: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
@@ -30,18 +21,22 @@ export function ScrollWords({ text, className }: { text: string; className?: str
   return (
     <p ref={ref} className={className}>
       <span className="sr-only">{stripAccents(text)}</span>
-      <span aria-hidden="true">
-        {words.map((word, i) => {
-          const start = i / words.length;
-          return (
-            <span key={i}>
-              <Word accent={word.accent} progress={scrollYProgress} range={[start, start + 1 / words.length]}>
-                {word.w}
-              </Word>{" "}
-            </span>
-          );
-        })}
-      </span>
+      <motion.span
+        className="scroll-words"
+        aria-hidden="true"
+        style={{ "--p": scrollYProgress, "--n": words.length } as unknown as CSSProperties}
+      >
+        {words.map((word, i) => (
+          <span key={i}>
+            <span
+              className={word.accent ? "scroll-words__word accent" : "scroll-words__word"}
+              style={{ "--i": i } as CSSProperties}
+            >
+              {word.w}
+            </span>{" "}
+          </span>
+        ))}
+      </motion.span>
     </p>
   );
 }

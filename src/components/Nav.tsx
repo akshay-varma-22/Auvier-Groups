@@ -1,11 +1,16 @@
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "motion/react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { group } from "../brand";
 import { EASE_IN_OUT, EASE_OUT } from "../lib/intro";
 import { lockScroll } from "../lib/scroll";
 import { Button } from "./ui/Button";
 
 export type NavLink = { label: string; href: string };
+
+/** How far you must scroll back up (px) before the hidden bar returns. */
+const REVEAL_AFTER = 160;
+/** How far you must scroll down (px) before the bar tucks away. */
+const HIDE_AFTER = 12;
 
 type Props = {
   /** The logo lockup shown in the bar */
@@ -26,11 +31,21 @@ export function Nav({ brand, brandLabel, links, cta, menuExtras = [], layout = "
   const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  // where the current scroll direction began, so a small nudge up doesn't bring the bar back
+  const turn = useRef({ dir: 0, from: 0 });
+  const shown = useRef({ hidden: false, scrolled: false });
+  const show = (hide: boolean) => {
+    if (shown.current.hidden !== hide) setHidden((shown.current.hidden = hide));
+  };
 
   useMotionValueEvent(scrollY, "change", (v) => {
     const prev = scrollY.getPrevious() ?? 0;
-    setScrolled(v > 24);
-    setHidden(v > prev && v > 480);
+    if (shown.current.scrolled !== v > 24) setScrolled((shown.current.scrolled = v > 24));
+    const dir = Math.sign(v - prev);
+    if (dir && dir !== turn.current.dir) turn.current = { dir, from: prev };
+    if (v <= 480) show(false);
+    else if (dir > 0 && v - turn.current.from > HIDE_AFTER) show(true);
+    else if (dir < 0 && turn.current.from - v > REVEAL_AFTER) show(false);
   });
 
   useEffect(() => {
