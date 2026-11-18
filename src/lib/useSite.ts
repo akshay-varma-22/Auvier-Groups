@@ -1,11 +1,9 @@
 import { useEffect } from "react";
-import { scrollToTarget, startSmoothScroll } from "./scroll";
+import { scrollToTarget } from "./scroll";
 
-/** Smooth scrolling plus in-page anchor links routed through it. Used by every page. */
+/** In-page anchor links glide to their section (native smooth scrolling). Used by every page. */
 export function useSmoothSite() {
   useEffect(() => {
-    startSmoothScroll();
-
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey) return;
       const link = (e.target as Element | null)?.closest<HTMLAnchorElement>('a[href^="#"]');

@@ -267,7 +267,7 @@ function CaseStudy({
       exit={{ clipPath: "inset(0px 0px 100% 0px round 0px)", transition: { duration: 0.75, ease: EASE_IN_OUT } }}
       transition={{ duration: 0.95, ease: EASE_IN_OUT }}
     >
-      <div ref={scrollRef} className="case__scroll" data-lenis-prevent>
+      <div ref={scrollRef} className="case__scroll">
         <div className="case__top container">
           <span className="eyebrow">
             <span className="eyebrow__index">Case study</span>

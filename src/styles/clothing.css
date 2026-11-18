@@ -29,7 +29,7 @@
   --btn-hover-bg: var(--loden);
   --btn-hover-fg: var(--chalk);
   --btn-glow: oklch(0.44 0.045 132 / 0.3);
-  --nav-glass: oklch(0.972 0.008 85 / 0.78);
+  --nav-glass: oklch(0.972 0.008 85 / 0.95);
   --burger-bg: var(--char);
   --burger-fg: var(--chalk);
   --menu-bg: var(--oat);

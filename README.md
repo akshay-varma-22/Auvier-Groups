@@ -8,9 +8,13 @@ The website for **Auvier Groups** and its two companies:
 | Auvier Technologies | `/technologies/` | Web design, development & deployment studio — portfolio and project brief |
 | Auvier Clothing | `/clothing/` | Premium everyday wear — Collection 01 preview and early-access list |
 
-Built with Vite (multi-page), React 19, TypeScript, [Motion](https://motion.dev) for animation and
-[Lenis](https://lenis.darkroom.engineering) for smooth scrolling. No CSS framework — the shared
-design system lives in `src/styles/tokens.css`.
+Built with Vite (multi-page), React 19, TypeScript and [Motion](https://motion.dev) for animation.
+No CSS framework — the shared design system lives in `src/styles/tokens.css`.
+
+**Smoothness rules:** scrolling is the browser's own (native) scrolling, which runs off the main
+thread; heavy work (the 3D studio, textures, garment photos) runs in Web Workers; the 3D studio
+only draws while something changes; and there are no live blur effects (`backdrop-filter`,
+animated `filter: blur`), which are redrawn every frame. Keep to these when adding features.
 
 ## Run it
 

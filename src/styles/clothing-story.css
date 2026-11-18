@@ -84,10 +84,8 @@
   margin-top: 2rem;
   padding: 0.45rem 0.45rem 0.45rem 1rem;
   border-radius: 999px;
-  background: oklch(0.985 0.006 85 / 0.82);
+  background: oklch(0.985 0.006 85 / 0.95);
   box-shadow: 0 0 0 1px var(--line);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   font-family: var(--font-mono);
   font-size: 0.64rem;
   letter-spacing: 0.12em;
@@ -202,9 +200,7 @@
 
 .st-cap__cta .cl-quick {
   width: min(30rem, 100%);
-  background: oklch(0.985 0.006 85 / 0.9);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: oklch(0.985 0.006 85 / 0.97);
 }
 
 /* --- Chapter rail ---------------------------------------------------------- */
@@ -217,10 +213,8 @@
   gap: 0.9rem;
   padding: 0.7rem 0.9rem 0.7rem 0.8rem;
   border-radius: 14px;
-  background: oklch(0.975 0.008 85 / 0.72);
+  background: oklch(0.975 0.008 85 / 0.93);
   box-shadow: 0 0 0 1px var(--line);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   translate: 0 -50%;
 }
 

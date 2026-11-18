@@ -28,7 +28,7 @@
   --btn-hover-bg: var(--brass);
   --btn-hover-fg: var(--ink-0);
   --btn-glow: oklch(0.68 0.1 76 / 0.35);
-  --nav-glass: oklch(0.958 0.012 85 / 0.75);
+  --nav-glass: oklch(0.958 0.012 85 / 0.95);
   --burger-bg: var(--ink-0);
   --burger-fg: var(--bone-0);
   --menu-bg: var(--ink-0);

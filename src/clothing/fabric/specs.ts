@@ -360,3 +360,13 @@ const polo: Spec = (() => {
 })();
 
 export const SPECS: Record<Kind, Spec> = { tee, overshirt, trouser, polo };
+
+/**
+ * Room around each photo for its baked-in shadow (garment units). A garment
+ * lying flat casts a short, tight shadow; one on a hanger casts a longer one
+ * onto the wall behind it.
+ */
+export const PHOTO_PAD = {
+  flat: { x: 8, top: 4, bottom: 14 },
+  hanging: { x: 14, top: 4, bottom: 30 },
+} as const;

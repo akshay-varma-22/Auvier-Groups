@@ -94,15 +94,12 @@ export function loadTeeTextures(coarse: boolean): Promise<TeeTextures> {
 function teeMaterial(color: string, tex: TeeTextures) {
   const uniforms = { uStitch: { value: tex.stitch }, uSew: { value: 1 } };
   const base = new THREE.Color(color);
-  const mat = new THREE.MeshPhysicalMaterial({
-    color: base.clone().multiplyScalar(1.12),
+  const mat = new THREE.MeshStandardMaterial({
+    color: base.clone().multiplyScalar(1.15),
     map: tex.map,
     normalMap: tex.normal,
     normalScale: new THREE.Vector2(0.85, 0.85),
-    roughness: 0.92,
-    sheen: 0.75,
-    sheenRoughness: 0.55,
-    sheenColor: base.clone().lerp(new THREE.Color(0xffffff), 0.5),
+    roughness: 0.88,
     side: THREE.DoubleSide,
   });
   mat.onBeforeCompile = (shader) => {

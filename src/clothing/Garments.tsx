@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { photo, photoScale } from "./fabric/client";
+import { PHOTO_PAD } from "./fabric/specs";
 
 /* Garment "flats" rendered like photographed flat-lays.
 
@@ -307,6 +308,7 @@ function GarmentFlat({
   title,
   className,
   hanger = false,
+  plain = false,
 }: {
   kind: GarmentKind;
   color: string;
@@ -314,6 +316,8 @@ function GarmentFlat({
   className?: string;
   /** Draw it on a hanger (extends the drawing upwards to fit the hook). */
   hanger?: boolean;
+  /** Skip the grain and lighting filters (they're costly to paint): a quick stand-in. */
+  plain?: boolean;
 }) {
   const clipId = `gc-${useId().replace(/[^\w-]/g, "")}`;
   const dark = isDark(color);
@@ -339,22 +343,24 @@ function GarmentFlat({
       </defs>
       {hanger && kind !== "trouser" && <Hanger bottom={false} />}
 
-      <path d={shape.body} fill="currentColor" filter={shape.knit ? "url(#g-knit)" : "url(#g-weave)"} />
+      <path d={shape.body} fill="currentColor" filter={plain ? undefined : shape.knit ? "url(#g-knit)" : "url(#g-weave)"} />
       {shape.structure?.(ink)}
 
-      <g className="garment__relief" clipPath={`url(#${clipId})`}>
-        <g filter="url(#g-relief)">
-          <path d={shape.body} fill="#808080" />
-          <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-            {shape.ridges.map(([d, w, depth], i) => (
-              <path key={`r${i}`} d={d} stroke="#ffffff" strokeWidth={w} strokeOpacity={depth} />
-            ))}
-            {shape.valleys.map(([d, w, depth], i) => (
-              <path key={`v${i}`} d={d} stroke="#000000" strokeWidth={w} strokeOpacity={depth} />
-            ))}
+      {!plain && (
+        <g className="garment__relief" clipPath={`url(#${clipId})`}>
+          <g filter="url(#g-relief)">
+            <path d={shape.body} fill="#808080" />
+            <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+              {shape.ridges.map(([d, w, depth], i) => (
+                <path key={`r${i}`} d={d} stroke="#ffffff" strokeWidth={w} strokeOpacity={depth} />
+              ))}
+              {shape.valleys.map(([d, w, depth], i) => (
+                <path key={`v${i}`} d={d} stroke="#000000" strokeWidth={w} strokeOpacity={depth} />
+              ))}
+            </g>
           </g>
         </g>
-      </g>
+      )}
 
       <path d={shape.body} fill="url(#g-sheen)" />
       {shape.trims(ink)}
@@ -363,6 +369,18 @@ function GarmentFlat({
       {hanger && kind === "trouser" && <Hanger bottom />}
     </svg>
   );
+}
+
+/** Places a photo (which carries its own shadow) so the garment lines up with its box. */
+function photoBox(hanger: boolean) {
+  const p = hanger ? PHOTO_PAD.hanging : PHOTO_PAD.flat;
+  const h = hanger ? 286 : 240;
+  return {
+    left: `${(-p.x / 200) * 100}%`,
+    top: `${(-p.top / h) * 100}%`,
+    width: `${((200 + 2 * p.x) / 200) * 100}%`,
+    height: `${((h + p.top + p.bottom) / h) * 100}%`,
+  };
 }
 
 /**
@@ -389,6 +407,7 @@ export function Garment({
   const [src, setSrc] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [flat, setFlat] = useState(true);
+  const [fallback, setFallback] = useState(false);
   const warm = prefetch?.join();
 
   useEffect(() => {
@@ -401,7 +420,11 @@ export function Garment({
         io.disconnect();
         const scale = photoScale(el.offsetWidth);
         photo(kind, color, hanger, scale).then((url) => {
-          if (!live || !url) return;
+          if (!live) return;
+          if (!url) {
+            setFallback(true);
+            return;
+          }
           setSrc(url);
           warm?.split(",").forEach((hex) => hex !== color && photo(kind, hex, hanger, scale));
         });
@@ -425,14 +448,24 @@ export function Garment({
   return (
     <span
       ref={wrap}
-      className={`garment garment--photo${className ? ` ${className}` : ""}${ready ? " is-ready" : ""}`}
+      className={`garment garment--photo${className ? ` ${className}` : ""}${ready ? " is-ready" : ""}${fallback ? " is-fallback" : ""}`}
       role={title ? "img" : undefined}
       aria-label={title}
       aria-hidden={title ? undefined : true}
       style={{ aspectRatio: hanger ? "200 / 286" : "200 / 240" }}
     >
-      {flat && <GarmentFlat kind={kind} color={color} hanger={hanger} className="garment__flat" />}
-      {src && <img className="garment__photo" src={src} alt="" decoding="async" draggable={false} onLoad={() => setReady(true)} />}
+      {flat && <GarmentFlat kind={kind} color={color} hanger={hanger} plain={!fallback} className="garment__flat" />}
+      {src && (
+        <img
+          className="garment__photo"
+          src={src}
+          alt=""
+          decoding="async"
+          draggable={false}
+          onLoad={() => setReady(true)}
+          style={photoBox(hanger)}
+        />
+      )}
     </span>
   );
 }

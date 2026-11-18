@@ -76,6 +76,11 @@ export class World {
   private dtSum = 0;
   private dtN = 0;
   private fastRuns = 0;
+  private dtMin = Infinity;
+  /** Estimated time between display frames (a 30 Hz remote screen isn't a slow GPU). */
+  private vsync = 1 / 60;
+  /** Something changed that needs a fresh frame (size, new objects, textures). */
+  private dirty = true;
   private reduced: boolean;
   private fit = 1;
   private portrait = false;
@@ -128,7 +133,7 @@ export class World {
     this.height = opts.height;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: "high-performance" });
     const r = this.renderer;
-    this.prMax = Math.min(opts.dpr || 1, coarse ? 1.5 : 1.75);
+    this.prMax = Math.min(opts.dpr || 1, coarse ? 1.25 : 1.5);
     this.prMin = Math.min(this.prMax, 1) * 0.75;
     this.pr = this.prMax;
     r.setPixelRatio(this.pr);
@@ -161,6 +166,8 @@ export class World {
     fontsReady().then(() => {
       this.fontsLoaded = true;
       this.textMaps.forEach((m) => m.draw());
+      this.dirty = true;
+      this.start();
     });
 
     this.resize();
@@ -173,8 +180,9 @@ export class World {
     this.target = clamp01(p);
     if (this.reduced) {
       this.p = this.target;
-      if (!this.running && this.ready) this.frame(performance.now());
+      this.dirty = true;
     }
+    this.start();
   }
 
   /** The canvas's size in CSS pixels. */
@@ -182,11 +190,14 @@ export class World {
     this.width = width;
     this.height = height;
     this.resize();
+    this.dirty = true;
+    this.start();
   }
 
   /** On screen and the tab is showing: run the loop; otherwise rest. */
   setVisible(visible: boolean) {
     this.visible = visible;
+    this.dirty = true;
     if (visible) this.start();
     else this.stop();
   }
@@ -194,6 +205,7 @@ export class World {
   /** Pointer position over the canvas, −1…1 on each axis. */
   setPointer(x: number, y: number) {
     this.pointer.set(x, y);
+    this.start();
   }
 
   dispose() {
@@ -214,14 +226,17 @@ export class World {
 
   /* --- loop -------------------------------------------------------------- */
 
+  /** Run the frame loop (if it isn't already): it stops itself once nothing is changing. */
   private start() {
     if (this.running || !this.visible || !this.ready) return;
     this.running = true;
     this.last = performance.now();
+    this.dtSum = 0;
+    this.dtN = 0;
     const loop = (now: number) => {
       if (!this.running) return;
-      this.frame(now);
-      this.raf = nextFrame(loop);
+      if (this.frame(now)) this.raf = nextFrame(loop);
+      else this.running = false;
     };
     this.raf = nextFrame(loop);
   }
@@ -231,32 +246,49 @@ export class World {
     cancelFrame(this.raf);
   }
 
+  /** Draws one frame if anything changed; returns false when the picture is at rest. */
   private frame(now: number) {
     const dt = Math.min(0.05, (now - this.last) / 1000 || 0);
     this.last = now;
+    // Only draw when the picture would change: while scrolling (and the dolly
+    // settles), while the pointer parallax eases, while the cloth moves in its
+    // breeze, or when something new arrives. Otherwise the GPU rests, which
+    // keeps the rest of the page (and any screen sharing) smooth.
+    const easing = Math.abs(this.target - this.p) > 1e-5;
+    const leaning = this.pointer.distanceToSquared(this.pointerSmooth) > 1e-6;
+    const breeze = !this.reduced && this.clothReady && this.clothSet.visible;
+    if (!easing && !leaning && !breeze && !this.dirty) return false;
+    this.dirty = false;
     if (!this.reduced) {
       this.time += dt;
       // ease the scrubbed progress so scrolling feels like a dolly, not a jump
       this.p += (this.target - this.p) * (1 - Math.exp(-dt * 5.5));
+      if (Math.abs(this.target - this.p) <= 1e-5) this.p = this.target;
     }
     this.update(dt);
     this.renderer.render(this.scene, this.camera);
     this.adapt(dt);
+    return true;
   }
 
   /** Drop the resolution a notch when frames run slow; raise it again when there's headroom. */
   private adapt(dt: number) {
     if (this.reduced || dt <= 0) return;
     this.dtSum += dt;
+    this.dtMin = Math.min(this.dtMin, dt);
     if (++this.dtN < 40) return;
     const avg = this.dtSum / this.dtN;
+    // the quickest frames show the display's refresh interval (16.7 ms at 60 Hz, 31 ms on a 32 Hz remote screen)
+    this.vsync = Math.max(1 / 240, this.dtMin);
     this.dtSum = 0;
     this.dtN = 0;
+    this.dtMin = Infinity;
     let next = this.pr;
-    if (avg > 0.024 && this.pr > this.prMin) {
+    const behind = avg > this.vsync * 1.35 + 0.002 || avg > 0.045;
+    if (behind && this.pr > this.prMin) {
       next = Math.max(this.prMin, this.pr - 0.25);
       this.fastRuns = 0;
-    } else if (avg < 0.0125 && this.pr < this.prMax) {
+    } else if (!behind && avg < this.vsync * 1.1 && this.pr < this.prMax) {
       if (++this.fastRuns >= 3) {
         next = Math.min(this.prMax, this.pr + 0.25);
         this.fastRuns = 0;
@@ -326,6 +358,8 @@ export class World {
       await idle();
       if (this.disposed) return;
       await step();
+      this.dirty = true;
+      this.start();
     }
   }
 
@@ -333,7 +367,7 @@ export class World {
     this.scene.add(new THREE.HemisphereLight(0xfff8ee, 0xc8b89a, 0.85));
     const key = new THREE.DirectionalLight(0xfff1de, 2.6);
     key.castShadow = true;
-    key.shadow.mapSize.set(coarse ? 1024 : 2048, coarse ? 1024 : 2048);
+    key.shadow.mapSize.set(coarse ? 512 : 1024, coarse ? 512 : 1024);
     key.shadow.radius = 5;
     key.shadow.bias = -0.0004;
     key.shadow.normalBias = 0.012;
@@ -538,14 +572,11 @@ export class World {
     this.textMaps.push({ draw });
     const normal = tx.weaveNormal();
     normal.repeat.set(5, 7);
-    const mat = new THREE.MeshPhysicalMaterial({
+    const mat = new THREE.MeshStandardMaterial({
       map,
       normalMap: normal,
       normalScale: new THREE.Vector2(0.32, 0.32),
-      roughness: 0.94,
-      sheen: 1,
-      sheenRoughness: 0.55,
-      sheenColor: new THREE.Color(COLOR.loden).lerp(new THREE.Color(0xffffff), 0.45),
+      roughness: 0.9,
       side: THREE.DoubleSide,
     });
     this.clothGeo = new THREE.PlaneGeometry(W, H, CLOTH.cols, CLOTH.rows);
@@ -710,12 +741,12 @@ export class World {
 
     // 01 · Spools turn; the loden one pays out thread.
     const threadG = easeInOut(clamp01((p - T.thread[0]) / (T.toLoom[1] - T.thread[0])));
-    this.spools.forEach((s, i) => (s.rotation.y = t * (0.15 + i * 0.05) + (i === 1 ? threadG * 14 : 0)));
+    this.spools.forEach((s, i) => (s.rotation.y = i * 0.7 + p * (2 + i) + (i === 1 ? threadG * 14 : 0)));
     const visible = Math.floor((this.threadCount * threadG) / 6) * 6;
     this.thread.geometry.setDrawRange(0, visible);
 
     // 02 · Weaving, row by row.
-    if (this.weft.length) this.updateLoom(p, t);
+    if (this.weft.length) this.updateLoom(p);
 
     // 03 · The cloth moves in a slow, gusty breeze (stepped at a steady 60 Hz).
     if (this.clothReady && this.clothSet.visible && dt > 0) {
@@ -732,7 +763,7 @@ export class World {
       if (stepped) this.syncCloth();
     }
 
-    if (this.hero) this.updateTee(p, t);
+    if (this.hero) this.updateTee(p);
 
     // 06 · The band slips over the stack.
     if (this.band) {
@@ -744,7 +775,7 @@ export class World {
     this.updateCamera(p);
   }
 
-  private updateLoom(p: number, t: number) {
+  private updateLoom(p: number) {
     const w = sub(seg(p, "weave"), 0, 0.92);
     const rowsF = w * this.weft.length;
     const full = Math.floor(rowsF);
@@ -768,7 +799,7 @@ export class World {
       const row = this.weft[full];
       const span = 0.86 + 0.05;
       const x = row.dir > 0 ? -span + frac * span * 2 : span - frac * span * 2;
-      this.shuttle.position.set(x, this.weftY[full], 0.065 + Math.sin(t * 6) * 0.002);
+      this.shuttle.position.set(x, this.weftY[full], 0.065);
       this.shuttle.rotation.y = row.dir > 0 ? 0 : Math.PI;
       this.beater.position.set(0, this.weftY[full] + 0.05 + 0.02 * Math.sin(frac * Math.PI), 0.034);
     } else {
@@ -776,7 +807,7 @@ export class World {
     }
   }
 
-  private updateTee(p: number, t: number) {
+  private updateTee(p: number) {
     const hero = this.hero!;
     // 04 · Sleeves join the body, then each seam is sewn, tone on tone.
     // 05 · Lift and fold: sleeves, left, right, then the hem half under.
@@ -814,7 +845,7 @@ export class World {
     if (this.needle.visible) {
       root.updateWorldMatrix(true, false);
       this.needle.position.applyMatrix4(root.matrixWorld);
-      this.needle.position.y += Math.abs(Math.sin(t * 14)) * 0.02;
+      this.needle.position.y += Math.abs(Math.sin(sewn * 260)) * 0.02;
     }
   }
 
@@ -856,14 +887,14 @@ export class World {
       mix(SH.ready0, SH.ready1, easeInOut(seg(p, "ready")), out);
     }
 
-    // breathe a little, lean towards the pointer, and step back on tall screens
+    // lean towards the pointer, and step back on tall screens
     this.pointerSmooth.lerp(this.pointer, 0.05);
     const dir = this.tmpB.pos.copy(out.pos).sub(out.look).multiplyScalar(this.fit);
     const cam = this.camera;
     cam.position.copy(out.look).add(dir);
     const dist = dir.length();
-    cam.position.x += this.pointerSmooth.x * 0.03 * dist + Math.sin(this.time * 0.3) * 0.006 * dist;
-    cam.position.y += this.pointerSmooth.y * 0.02 * dist + Math.sin(this.time * 0.4) * 0.004 * dist;
+    cam.position.x += this.pointerSmooth.x * 0.03 * dist;
+    cam.position.y += this.pointerSmooth.y * 0.02 * dist;
     // on portrait screens, aim a little low so the subject sits above the captions
     this.aim.copy(out.look);
     if (this.portrait && p < T.fold[1]) this.aim.y -= dist * 0.16;

@@ -1,7 +1,6 @@
 import {
   AnimatePresence,
   motion,
-  useMotionTemplate,
   useMotionValueEvent,
   useScroll,
   useTransform,
@@ -108,12 +107,10 @@ function Caption({ ch, p }: { ch: Chapter; p: MotionValue<number> }) {
   const at = last ? [a, a + fade] : [a, a + fade, b - fade, b];
   const opacity = useTransform(p, at, last ? [0, 1] : [0, 1, 1, 0]);
   const y = useTransform(p, last ? [a, a + fade * 1.4] : [a, a + fade * 1.4, b - fade, b], last ? [46, 0] : [46, 0, 0, -34]);
-  const blur = useTransform(p, at, last ? [12, 0] : [12, 0, 0, 10]);
-  const filter = useMotionTemplate`blur(${blur}px)`;
   const visibility = useTransform(opacity, (o) => (o < 0.02 ? "hidden" : "visible"));
 
   return (
-    <motion.article className={last ? "st-cap st-cap--final" : "st-cap"} style={{ opacity, y, filter, visibility }}>
+    <motion.article className={last ? "st-cap st-cap--final" : "st-cap"} style={{ opacity, y, visibility }}>
       <span className="st-cap__n">
         {ch.n} <span>/ 06</span>
         <i aria-hidden="true" />

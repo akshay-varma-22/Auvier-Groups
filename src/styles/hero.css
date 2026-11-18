@@ -120,8 +120,8 @@
   position: absolute;
   inset: 8% -6% -12%;
   z-index: -1;
+  /* already soft: no blur filter, which was redrawn as the hero tilts */
   background: radial-gradient(closest-side, var(--ember-glow), transparent);
-  filter: blur(40px);
   pointer-events: none;
 }
 
@@ -941,8 +941,7 @@
   overflow: hidden;
   border-radius: 0.7em;
   border: 1px solid oklch(1 0 0 / 0.1);
-  background: oklch(0.2 0.01 290 / 0.92);
-  backdrop-filter: blur(8px);
+  background: oklch(0.2 0.01 290 / 0.96);
   box-shadow: 0 1em 2em -1em oklch(0 0 0 / 0.8);
   font-family: var(--font-mono);
   font-size: 0.62em;

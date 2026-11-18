@@ -1,5 +1,5 @@
 import { blur, fbm, grainTile, hash2, sample, vnoise } from "./field";
-import { SPECS, type Kind, type Spec } from "./specs";
+import { PHOTO_PAD, SPECS, type Kind, type Spec } from "./specs";
 
 /* Photographic garment flats, rendered on the CPU (in a worker).
 
@@ -458,7 +458,32 @@ export function render(req: PhotoRequest): OffscreenCanvas {
   }
 
   if (req.hanger && req.kind === "trouser") drawClipHanger(g);
-  return out.c;
+
+  // Bake the drop shadow in here, once and off the main thread: CSS filter
+  // shadows on many garments made scrolling stutter while they painted.
+  const pad = req.hanger ? PHOTO_PAD.hanging : PHOTO_PAD.flat;
+  const fin = surface(Math.round((200 + pad.x * 2) * U), Math.round(h + (pad.top + pad.bottom) * U));
+  const fg = fin.g;
+  const away = fin.c.width * 2;
+  const shadow = (blur: number, dy: number, alpha: number) => {
+    fg.save();
+    fg.shadowColor = `rgba(58,44,30,${alpha})`;
+    fg.shadowBlur = blur * U;
+    // draw the garment off-canvas so only its shadow lands
+    fg.shadowOffsetX = away;
+    fg.shadowOffsetY = dy * U;
+    fg.drawImage(out.c, pad.x * U - away, pad.top * U);
+    fg.restore();
+  };
+  if (req.hanger) {
+    shadow(1.6, 1.4, 0.2);
+    shadow(12, 13, 0.17);
+  } else {
+    shadow(1, 0.7, 0.24);
+    shadow(6.5, 4, 0.13);
+  }
+  fg.drawImage(out.c, pad.x * U, pad.top * U);
+  return fin.c;
 }
 
 /* --- hangers --------------------------------------------------------------- */

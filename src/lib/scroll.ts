@@ -1,38 +1,23 @@
-import Lenis from "lenis";
+/* Scrolling uses the browser's own (native) scrolling. It runs on the
+   browser's compositor thread, so it stays smooth and responds instantly even
+   when the page is busy, unlike a JavaScript smooth-scroll library, which
+   moves the page from the main thread every frame and adds easing lag. */
 
-let lenis: Lenis | null = null;
+const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Smooth scrolling is a progressive enhancement: skipped for reduced motion. */
-export function startSmoothScroll() {
-  if (lenis || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  lenis = new Lenis({ autoRaf: true, lerp: 0.11, wheelMultiplier: 1 });
-}
-
-export function stopSmoothScroll() {
-  lenis?.destroy();
-  lenis = null;
-}
-
+/** Freeze page scrolling (menus, dialogs, the intro). */
 export function lockScroll(locked: boolean) {
-  if (lenis) {
-    if (locked) lenis.stop();
-    else lenis.start();
-  }
   document.documentElement.style.overflow = locked ? "hidden" : "";
 }
 
+/** Glide to an element, a selector or a scroll position. */
 export function scrollToTarget(target: string | HTMLElement | number, offset = 0) {
-  if (lenis) {
-    // force: a menu may still hold the scroll lock for the frame this runs in.
-    lenis.scrollTo(target, { offset, duration: 1.4, force: true });
-    return;
-  }
+  const behavior: ScrollBehavior = reduced() ? "auto" : "smooth";
   if (typeof target === "number") {
-    window.scrollTo({ top: target, behavior: "smooth" });
+    window.scrollTo({ top: target + offset, behavior });
     return;
   }
   const el = typeof target === "string" ? document.querySelector<HTMLElement>(target) : target;
   if (!el) return;
-  const top = el.getBoundingClientRect().top + window.scrollY + offset;
-  window.scrollTo({ top, behavior: "smooth" });
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY + offset, behavior });
 }
