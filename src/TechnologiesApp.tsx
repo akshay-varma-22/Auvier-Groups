@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { companies } from "./brand";
 import { Nav } from "./components/Nav";
 import { Hero } from "./components/hero/Hero";
+import { LocalOffer } from "./components/sections/LocalOffer";
 import { Contact } from "./components/sections/Contact";
 import { FAQ } from "./components/sections/FAQ";
 import { Footer } from "./components/sections/Footer";
@@ -12,6 +13,7 @@ import { Process } from "./components/sections/Process";
 import { Services } from "./components/sections/Services";
 import { Ship } from "./components/sections/Ship";
 import { Statement } from "./components/sections/Statement";
+import { Assistant } from "./components/ui/Assistant";
 import { Cursor } from "./components/ui/Cursor";
 import { GroupBar } from "./components/ui/GroupBar";
 import { Logo } from "./components/ui/Logo";
@@ -79,6 +81,7 @@ export default function TechnologiesApp() {
           <Statement />
           <Work />
           <Services />
+          <LocalOffer />
           <Process />
           <Ship />
           <Principles />
@@ -86,6 +89,7 @@ export default function TechnologiesApp() {
           <Contact />
         </main>
         <Footer />
+        <Assistant />
       </IntroContext.Provider>
     </MotionConfig>
   );

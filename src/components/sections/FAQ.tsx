@@ -12,7 +12,7 @@ export function FAQ() {
     <section id="faq" className="section faq" aria-labelledby="faq-title">
       <div className="container faq__grid">
         <div className="faq__aside">
-          <Eyebrow index="07">FAQ</Eyebrow>
+          <Eyebrow index="08">FAQ</Eyebrow>
           <SplitText as="h2" id="faq-title" className="faq__title" text="Good *questions.*" />
           <p className="faq__hint">
             Something else on your mind? <a href={`mailto:${site.email}`}>Email us</a> — a real person replies.

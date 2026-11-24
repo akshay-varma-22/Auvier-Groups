@@ -21,7 +21,7 @@ export function Process() {
     <section id="process" className="section process" aria-labelledby="process-title">
       <div className="container process__grid">
         <div className="process__aside">
-          <Eyebrow index="04">Process</Eyebrow>
+          <Eyebrow index="05">Process</Eyebrow>
           <SplitText as="h2" id="process-title" className="process__title" text="A clear path from *idea* to *live.*" />
           <div className="process__counter" aria-hidden="true">
             <span className="process__digit">

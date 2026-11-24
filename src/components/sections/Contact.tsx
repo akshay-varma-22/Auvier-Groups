@@ -1,21 +1,27 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { contact, site } from "../../content";
 import { EASE_OUT } from "../../lib/intro";
+import { composeMail } from "../../lib/mail";
 import { Button } from "../ui/Button";
 import { Eyebrow } from "../ui/Eyebrow";
 import { SplitText } from "../ui/SplitText";
 
+/** "delivered": the brief reached the team. "mail": delivery failed, so it was opened in the visitor's email app. */
+type Sent = false | "delivered" | "mail";
+
 /**
- * Project brief form. With no backend yet, submitting composes a tidy email
- * in the visitor's mail app. To collect briefs directly instead, point the
- * form at a service such as Formspree or Netlify Forms.
+ * Project brief form. Submitting posts the brief to /api/lead (api/lead.js), which forwards
+ * it to the team's Telegram. If that fails for any reason, the brief is composed as an email
+ * in the visitor's mail app instead, so no enquiry is lost.
  */
 export function Contact() {
   const [needs, setNeeds] = useState<string[]>([]);
   const [timeline, setTimeline] = useState("");
   const [copied, setCopied] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState<Sent>(false);
+  const [sending, setSending] = useState(false);
+  const shownAt = useRef(Date.now());
 
   const toggleNeed = (n: string) => setNeeds((cur) => (cur.includes(n) ? cur.filter((x) => x !== n) : [...cur, n]));
 
@@ -29,8 +35,9 @@ export function Contact() {
     }
   };
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (sending) return;
     const data = new FormData(e.currentTarget);
     const name = String(data.get("name") ?? "").trim();
     const email = String(data.get("email") ?? "").trim();
@@ -48,16 +55,45 @@ export function Contact() {
     ].filter(Boolean);
     const body = `${details.join("\n")}\n\n${message}`;
 
-    const subject = `New project enquiry — ${name || "website"}`;
-    window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setSent(true);
+    setSending(true);
+    let delivered = false;
+    try {
+      const res = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          source: "brief",
+          name,
+          email,
+          phone,
+          business: company,
+          needs: needs.join(", "),
+          timeline,
+          message,
+          website: String(data.get("website") ?? ""), // honeypot: people never see this field
+          elapsedMs: Date.now() - shownAt.current,
+          page: location.pathname,
+        }),
+      });
+      delivered = res.ok;
+    } catch {
+      delivered = false;
+    }
+    setSending(false);
+
+    if (delivered) {
+      setSent("delivered");
+    } else {
+      composeMail(site.email, `New project enquiry — ${name || "website"}`, body);
+      setSent("mail");
+    }
   };
 
   return (
     <section id="contact" className="section section--sheet theme-ember contact" aria-labelledby="contact-title">
       <div className="container contact__grid">
         <div className="contact__copy">
-          <Eyebrow index="08">Start a project</Eyebrow>
+          <Eyebrow index="09">Start a project</Eyebrow>
           <SplitText as="h2" id="contact-title" className="contact__title" text={contact.heading} />
           <p className="contact__lede">{contact.lede}</p>
 
@@ -94,14 +130,29 @@ export function Contact() {
                 <span className="brief__sent-icon" aria-hidden="true">
                   ✓
                 </span>
-                <h3>Your brief is ready to send.</h3>
-                <p>
-                  We've opened it in your email app — just hit send. If nothing opened, write to us at{" "}
-                  <a href={`mailto:${site.email}`}>{site.email}</a>.
-                </p>
-                <button className="brief__again" onClick={() => setSent(false)}>
-                  Edit my brief
-                </button>
+                {sent === "delivered" ? (
+                  <>
+                    <h3>Thanks, your brief is with us.</h3>
+                    <p>
+                      We'll reply within one business day from <a href={`mailto:${site.email}`}>{site.email}</a>. Asked for a
+                      mock-up? It arrives within 48 hours.
+                    </p>
+                    <button className="brief__again" onClick={() => setSent(false)}>
+                      Send another brief
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h3>Your brief is ready to send.</h3>
+                    <p>
+                      We couldn't send it from the page, so we've opened it in your email app — just hit send. If nothing
+                      opened, write to us at <a href={`mailto:${site.email}`}>{site.email}</a>.
+                    </p>
+                    <button className="brief__again" onClick={() => setSent(false)}>
+                      Edit my brief
+                    </button>
+                  </>
+                )}
               </motion.div>
             ) : (
               <motion.form key="form" className="brief__form" onSubmit={onSubmit} exit={{ opacity: 0, y: -10 }}>
@@ -175,11 +226,17 @@ export function Contact() {
                   <label htmlFor="f-message">Tell us about your project</label>
                 </div>
 
+                {/* Honeypot: hidden from people and screen readers; bots that fill it are ignored. */}
+                <div className="sr-only" aria-hidden="true">
+                  <label htmlFor="f-website">Leave this field empty</label>
+                  <input id="f-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+                </div>
+
                 <div className="brief__submit">
-                  <Button type="submit">
-                    Send my brief
+                  <Button type="submit" disabled={sending}>
+                    {sending ? "Sending…" : "Send my brief"}
                   </Button>
-                  <span className="brief__note">Opens your email app with everything filled in.</span>
+                  <span className="brief__note">Goes straight to our team. We reply within one business day.</span>
                 </div>
               </motion.form>
             )}

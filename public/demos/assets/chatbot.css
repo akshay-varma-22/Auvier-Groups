@@ -1,0 +1,23 @@
+/* Website assistant widget (assets/chatbot.js). Theme it with --cb-accent, --cb-on-accent, --cb-badge,
+   --cb-line, --cb-soft, --cb-muted and --cb-font; each falls back to the demo sites' design tokens. */
+/* ── Chatbot widget ─────────────────────────────────────────────── */
+.cb-launcher { position: fixed; right: 20px; bottom: 20px; z-index: 50; width: 62px; height: 62px; border-radius: 50%; border: none; background: var(--cb-accent, var(--brand, #2563eb)); color: var(--cb-on-accent, #fff); font-size: 1.6rem; box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25); cursor: pointer; }
+.cb-launcher:focus-visible { outline: 3px solid var(--cb-badge, var(--accent, #f59e0b)); outline-offset: 3px; }
+.cb-badge { position: absolute; top: -4px; right: -4px; background: var(--cb-badge, var(--accent, #f59e0b)); color: #111827; font-size: 0.7rem; font-weight: 800; border-radius: 999px; padding: 2px 7px; }
+.cb-panel { font-family: var(--cb-font, inherit); color: #0f172a; position: fixed; right: 20px; bottom: 94px; z-index: 50; width: min(380px, calc(100vw - 32px)); height: min(560px, calc(100vh - 130px)); background: #fff; border-radius: 18px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28); display: none; flex-direction: column; overflow: hidden; border: 1px solid var(--cb-line, var(--line, #e2e8f0)); }
+.cb-panel.open { display: flex; }
+.cb-head { background: var(--cb-accent, var(--brand, #2563eb)); color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+.cb-head strong { display: block; }
+.cb-head small { opacity: 0.85; }
+.cb-close { margin-left: auto; background: transparent; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; line-height: 1; }
+.cb-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); display: grid; place-items: center; }
+.cb-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--cb-soft, var(--bg-alt, #f8fafc)); }
+.cb-msg { max-width: 85%; padding: 10px 13px; border-radius: 14px; font-size: 0.95rem; white-space: pre-line; }
+.cb-msg.bot { background: #fff; border: 1px solid var(--cb-line, var(--line, #e2e8f0)); align-self: flex-start; border-bottom-left-radius: 4px; }
+.cb-msg.user { background: var(--cb-accent, var(--brand, #2563eb)); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.cb-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 10px; background: var(--cb-soft, var(--bg-alt, #f8fafc)); }
+.cb-quick button { border: 1px solid var(--cb-accent, var(--brand, #2563eb)); background: #fff; color: var(--cb-accent, var(--brand, #2563eb)); border-radius: 999px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; }
+.cb-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--cb-line, var(--line, #e2e8f0)); }
+.cb-form input { flex: 1; font: inherit; padding: 10px 12px; border-radius: 999px; border: 1px solid var(--cb-line, var(--line, #e2e8f0)); }
+.cb-form button { border: none; background: var(--cb-accent, var(--brand, #2563eb)); color: #fff; border-radius: 999px; padding: 0 16px; font-weight: 700; cursor: pointer; }
+.cb-foot { font-size: 0.72rem; color: var(--cb-muted, var(--muted, #475569)); text-align: center; padding: 0 12px 10px; }

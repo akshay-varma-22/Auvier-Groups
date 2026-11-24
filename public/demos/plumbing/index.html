@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Northside Plumbing &amp; Heating — 24/7 emergency plumber (concept demo)</title>
+  <meta name="description" content="Concept demo website for a local plumbing and heating company: emergency call-outs, upfront pricing, instant quotes and a 24/7 website assistant." />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <link rel="stylesheet" href="../assets/chatbot.css" />
+  <style>
+    :root { --brand: #1d4ed8; --brand-ink: #1e3a8a; --brand-soft: #eff6ff; --accent: #f97316; }
+    .urgent { background: var(--accent); color: #111827; font-weight: 700; text-align: center; padding: 10px 16px; }
+    .urgent a { color: #111827; }
+    .stat { font-size: 2rem; font-weight: 800; color: var(--brand); }
+    .areas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .areas span { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 0.9rem; }
+    .steps { counter-reset: step; display: grid; gap: 16px; }
+    .steps li { list-style: none; counter-increment: step; display: flex; gap: 14px; align-items: flex-start; }
+    .steps li::before { content: counter(step); flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <div class="demo-bar">Concept demo: Northside Plumbing &amp; Heating is a fictional company. <a href="../../technologies/#local">Back to Auvier Technologies →</a></div>
+  <div class="urgent">🚨 Burst pipe or no heat? We're on call 24/7: <a href="tel:+15555550177">(555) 555-0177</a></div>
+
+  <header class="site-header">
+    <nav class="container nav" aria-label="Main">
+      <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true">🔧</span> Northside Plumbing</a>
+      <ul class="nav-links">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#areas">Service areas</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+      </ul>
+      <a class="btn btn-primary" href="#quote">Get a free quote</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Licensed &amp; insured · Family owned since 2009</span>
+          <h1>Fast, honest plumbing. On time, or the call-out is free.</h1>
+          <p class="lead">Leaks, clogs, water heaters and furnace repairs across the north side. Upfront prices before we start, and a 2-year warranty on our work.</p>
+          <div class="btn-row">
+            <a class="btn btn-accent" href="tel:+15555550177">Call now (24/7)</a>
+            <a class="btn btn-ghost" href="#quote">Request a quote online</a>
+          </div>
+          <div class="trust">
+            <span><strong>60 min</strong> average emergency arrival</span>
+            <span><strong>4.8★</strong> from 1,200+ jobs</span>
+            <span><strong>2-year</strong> workmanship warranty</span>
+          </div>
+        </div>
+        <aside class="hero-card" aria-label="Why choose us">
+          <h3>Why neighbours call us</h3>
+          <ul class="checks">
+            <li>Fixed price agreed before any work</li>
+            <li>No overtime charge on weekends</li>
+            <li>Shoe covers on, mess cleaned up</li>
+            <li>Photos and invoice by text when done</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="container">
+        <div class="center"><span class="eyebrow">Services</span><h2>From dripping taps to new boilers</h2></div>
+        <div class="grid grid-3" style="margin-top:36px">
+          <article class="card"><div class="icon">💧</div><h3>Leaks &amp; burst pipes</h3><p>Fast leak detection and repair to stop water damage spreading.</p></article>
+          <article class="card"><div class="icon">🚽</div><h3>Drain &amp; toilet clogs</h3><p>Camera inspection and hydro-jetting for stubborn blockages.</p></article>
+          <article class="card"><div class="icon">🔥</div><h3>Water heaters</h3><p>Repair and same-day replacement of tank and tankless units.</p></article>
+          <article class="card"><div class="icon">🌡️</div><h3>Furnace &amp; heating</h3><p>No heat? Diagnosis and repair on all major brands.</p></article>
+          <article class="card"><div class="icon">🛁</div><h3>Bathroom refits</h3><p>Showers, tubs, vanities and fixtures, fitted cleanly.</p></article>
+          <article class="card"><div class="icon">🧾</div><h3>Inspections</h3><p>Pre-purchase plumbing reports for home buyers.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="pricing">
+      <div class="container">
+        <div class="center"><span class="eyebrow">Upfront pricing</span><h2>Know the price before we start</h2><p class="lead">Typical starting prices. Your technician confirms a fixed price on site before any work begins.</p></div>
+        <div class="grid grid-3" style="margin-top:32px">
+          <article class="card"><h3>Call-out &amp; diagnosis</h3><p>Free if we arrive late. Waived if you go ahead with the repair.</p><p class="price">$79</p></article>
+          <article class="card"><h3>Drain unclog</h3><p>Sinks, showers and toilets, with a 30-day re-clog guarantee.</p><p class="price">from $149</p></article>
+          <article class="card"><h3>Water heater install</h3><p>40–50 gal tank, including haul-away of the old unit.</p><p class="price">from $1,450</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="areas">
+      <div class="container grid grid-2" style="gap:40px;align-items:start">
+        <div>
+          <span class="eyebrow">Service areas</span>
+          <h2>Serving the whole north side</h2>
+          <p class="lead">Vans stationed across the area for fast arrival times.</p>
+          <div class="areas"><span>Northgate</span><span>Maple Heights</span><span>Riverbend</span><span>Oak Park</span><span>Lakeside</span><span>Cedar Hills</span></div>
+          <p class="form-note" style="margin-top:10px">Fictional neighbourhoods for this demo.</p>
+        </div>
+        <div>
+          <span class="eyebrow">How it works</span>
+          <h2>Three easy steps</h2>
+          <ol class="steps" style="padding:0">
+            <li><span><strong>Tell us the problem</strong><br />Call, use the form, or ask our assistant. Photos help.</span></li>
+            <li><span><strong>Get a fixed price</strong><br />The technician confirms the price before starting.</span></li>
+            <li><span><strong>Fixed and guaranteed</strong><br />Pay on completion, with a 2-year warranty.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="reviews">
+      <div class="container">
+        <div class="center"><span class="eyebrow">Reviews</span><h2>What customers say</h2></div>
+        <div class="grid grid-3" style="margin-top:32px">
+          <blockquote class="quote"><div class="stars">★★★★★</div><p>“Pipe burst at 2 am. Someone was here by 3 and the price matched the quote exactly.”</p><footer>— Sample review, concept demo</footer></blockquote>
+          <blockquote class="quote"><div class="stars">★★★★★</div><p>“Asked the website chat at night, got a quote request in, and they called first thing.”</p><footer>— Sample review, concept demo</footer></blockquote>
+          <blockquote class="quote"><div class="stars">★★★★★</div><p>“New water heater in on the same day. Tidy and friendly.”</p><footer>— Sample review, concept demo</footer></blockquote>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="quote">
+      <div class="container contact-grid">
+        <div>
+          <span class="eyebrow">Free quote</span>
+          <h2>Tell us what's going on</h2>
+          <p class="lead">We reply within 30 minutes during business hours. For emergencies, please call.</p>
+          <ul class="info-list">
+            <li><span class="icon">📞</span><span><a href="tel:+15555550177">(555) 555-0177</a>, 24/7</span></li>
+            <li><span class="icon">✉️</span><span><a href="mailto:jobs@northside.example.com">jobs@northside.example.com</a></span></li>
+          </ul>
+          <table class="hours" aria-label="Opening hours">
+            <tr><td>Office, Mon – Fri</td><td>7:00 – 18:00</td></tr>
+            <tr><td>Office, Saturday</td><td>8:00 – 14:00</td></tr>
+            <tr><td>Emergency line</td><td>24 hours, every day</td></tr>
+          </table>
+        </div>
+        <form class="form" data-demo-form>
+          <div class="form-row">
+            <label>Name <input name="name" required autocomplete="name" /></label>
+            <label>Phone <input name="phone" type="tel" required autocomplete="tel" /></label>
+          </div>
+          <div class="form-row">
+            <label>Zip code <input name="zip" inputmode="numeric" autocomplete="postal-code" /></label>
+            <label>Urgency
+              <select name="urgency"><option>Emergency (today)</option><option>This week</option><option>Planning ahead</option></select>
+            </label>
+          </div>
+          <label>What's the problem? <textarea name="problem" rows="4" required></textarea></label>
+          <button class="btn btn-primary" type="submit">Request my quote</button>
+          <p class="form-note">Demo form: nothing is sent.</p>
+          <div class="form-success" role="status">Thanks! In the real site, the dispatcher gets this instantly and calls you back.</div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div><strong>Northside Plumbing &amp; Heating</strong> (fictional)<br />Concept website demo.</div>
+      <div>Website &amp; assistant by <a href="../../technologies/">Auvier Technologies</a></div>
+    </div>
+  </footer>
+
+  <script>
+    window.CHATBOT_CONFIG = {
+      demo: true,
+      name: "Northside Assistant",
+      subtitle: "24/7: emergencies and quotes",
+      greeting: "Hi! I'm the Northside assistant. Is this an emergency, or would you like a quote?",
+      quickReplies: ["It's an emergency", "Get a quote", "Prices", "Do you cover my area?"],
+      intents: [
+        { keys: ["emergency", "burst", "flood", "flooding", "leak", "leaking", "water everywhere", "no water", "gas", "urgent"], answer: "If water is leaking, turn off the main stopcock (usually under the kitchen sink). Smell gas? Leave the house and call your gas utility first. For a plumber now, call (555) 555-0177 (24/7), or leave your details and the on-call tech will call you within 10 minutes.", offerLead: true },
+        { keys: ["heat", "heating", "furnace", "boiler", "cold", "radiator", "no heat"], answer: "No heat is something we treat as urgent in winter. We repair all major furnace brands, and same-day visits are often available. Shall I take your details?", offerLead: true },
+        { generic: true, keys: ["price", "cost", "how much", "charge", "fee", "expensive", "estimate"], answer: "Call-out and diagnosis is $79 (waived if you go ahead with the repair). Drain unclogs start at $149, and water heater installs from $1,450. You always get a fixed price before work starts." },
+        { keys: ["quote", "estimate", "free quote"], answer: "Happy to arrange a free quote! Let me take a few details.", offerLead: true },
+        { keys: ["area", "areas", "cover", "come to", "zip", "near", "location", "serve"], answer: "We cover Northgate, Maple Heights, Riverbend, Oak Park, Lakeside and Cedar Hills (fictional areas for this demo). Tell me your zip code and I'll check." },
+        { keys: ["water heater", "hot water", "tankless", "no hot water"], answer: "No hot water? We repair and replace tank and tankless heaters, often on the same day. Installs from $1,450, including removal of the old unit." },
+        { keys: ["clog", "clogged", "blocked", "drain", "toilet", "slow drain", "backed up"], answer: "We clear sinks, showers, toilets and main lines, using a camera where needed. From $149, with a 30-day re-clog guarantee." },
+        { keys: ["warranty", "guarantee", "insured", "licensed", "license"], answer: "We're fully licensed and insured, and all workmanship carries a 2-year warranty. If we're late, the call-out is free." },
+        { keys: ["hours", "open", "weekend", "saturday", "sunday", "night"], answer: "Office: Mon–Fri 7:00–18:00 and Sat 8:00–14:00. The emergency line is open 24 hours a day, every day, with no overtime charge at weekends." },
+        { keys: ["pay", "payment", "card", "finance", "financing", "cash"], answer: "Pay on completion by card, cash or bank transfer. Financing is available on installs over $1,000." }
+      ],
+      fallback: "I'm not sure about that one, but a technician can help. Shall I ask them to contact you?",
+      leadIntro: "Let's get you sorted. What's your name?",
+      leadThanks: "Thanks {name}! A Northside technician will call you shortly. For anything dangerous, call (555) 555-0177 now."
+    };
+  </script>
+  <script src="../assets/chatbot.js" defer></script>
+</body>
+</html>

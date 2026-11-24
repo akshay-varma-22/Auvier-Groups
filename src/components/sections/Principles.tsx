@@ -66,7 +66,7 @@ export function Principles() {
     <section className="section principles" aria-labelledby="principles-title">
       <div className="container">
         <div className="principles__head">
-          <Eyebrow index="06">Why Auvier</Eyebrow>
+          <Eyebrow index="07">Why Auvier</Eyebrow>
           <SplitText as="h2" id="principles-title" className="principles__title" text="Standards we *don't* compromise on." />
         </div>
         <div className="bento">

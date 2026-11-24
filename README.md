@@ -98,7 +98,7 @@ When product photography is ready, replace `<Garment>` with an `<img>`.
 ## Forms
 
 There's no backend yet. The Technologies project brief and the Clothing waitlist both open the
-visitor's email app with everything filled in, addressed to auviergroups@gmail.com
+visitor's email app with everything filled in, addressed to hello@auviergroups.com
 (`src/lib/mail.ts`). To receive submissions directly, point them at a form service (Formspree,
 Netlify Forms, etc.).
 

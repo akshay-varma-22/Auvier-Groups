@@ -6,7 +6,7 @@
 export const group = {
   name: "Auvier Groups",
   short: "Auvier",
-  email: "auviergroups@gmail.com",
+  email: "hello@auviergroups.com",
   year: new Date().getFullYear(),
 };
 

@@ -1,0 +1,299 @@
+/* ==========================================================================
+   Local business package: problems, pricing plans and demo sites
+   ========================================================================== */
+
+.local__head {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: end;
+  gap: 1.5rem clamp(1rem, 2vw, 2rem);
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.local__head .eyebrow {
+  grid-column: 1 / -1;
+}
+
+.local__title {
+  grid-column: 1 / span 7;
+  font-size: var(--step-4);
+  line-height: 0.98;
+  letter-spacing: var(--tracking-display);
+}
+
+.local__intro {
+  grid-column: 9 / -1;
+  color: var(--fg-2);
+}
+
+/* --- Problems ------------------------------------------------------------ */
+
+.local__problems {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 2rem);
+  padding: 0;
+  margin-bottom: clamp(3rem, 6vw, 5rem);
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.local__problems li {
+  padding-top: 1.4rem;
+}
+
+.local__problems h3 {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: 0.5rem;
+}
+
+.local__problems p {
+  color: var(--fg-2);
+  max-width: 36ch;
+}
+
+/* --- Plans --------------------------------------------------------------- */
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+  padding: 0;
+  list-style: none;
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.plan--featured {
+  background: var(--ink-0);
+  border-color: var(--ink-0);
+  color: var(--bone-0);
+  box-shadow: var(--shadow-paper);
+}
+
+.plan__tag {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--ember);
+  color: var(--ink-0);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+}
+
+.plan__name {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-weight: 500;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.plan--featured .plan__name {
+  color: var(--ember);
+}
+
+.plan__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  margin-block: 1rem 0.5rem;
+}
+
+.plan__price strong {
+  font-family: var(--font-display);
+  font-size: var(--step-4);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+}
+
+.plan__price span {
+  font-size: var(--step--1);
+  opacity: 0.7;
+}
+
+.plan__blurb {
+  opacity: 0.8;
+  margin-bottom: 1.25rem;
+}
+
+.plan__items {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.25rem 0 0;
+  margin-top: auto;
+  list-style: none;
+  border-top: 1px solid currentColor;
+  border-top-color: color-mix(in oklch, currentColor 18%, transparent);
+  font-size: var(--step--1);
+}
+
+.plan__items li {
+  position: relative;
+  padding-left: 1.4rem;
+}
+
+.plan__items li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 0.7rem;
+  height: 0.38rem;
+  border-left: 2px solid var(--ember-deep);
+  border-bottom: 2px solid var(--ember-deep);
+  transform: rotate(-45deg);
+}
+
+.plan--featured .plan__items li::before {
+  border-color: var(--ember);
+}
+
+/* --- CTA ----------------------------------------------------------------- */
+
+.local__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 2rem;
+  margin-block: clamp(2rem, 4vw, 3rem) clamp(4rem, 8vw, 6rem);
+}
+
+.local__cta p {
+  max-width: 52ch;
+  color: var(--fg-2);
+  font-size: var(--step--1);
+}
+
+/* --- Demos --------------------------------------------------------------- */
+
+.local__demos-title {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: 1.25rem;
+}
+
+.local__demos ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+  padding: 0;
+  list-style: none;
+}
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  height: 100%;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  border-radius: var(--r-lg);
+  background: var(--panel, var(--ink-2));
+  color: oklch(0.99 0 0);
+  text-decoration: none;
+  transition: transform 0.5s var(--ease-out), box-shadow 0.5s var(--ease-out);
+}
+
+.demo:hover,
+.demo:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-paper);
+}
+
+.demo__sector {
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.demo__name {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.demo__body {
+  font-size: var(--step--1);
+  opacity: 0.85;
+}
+
+.demo__open {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  font-weight: 600;
+}
+
+.local__note {
+  margin-top: 1.25rem;
+  color: var(--fg-2);
+  font-size: var(--step--1);
+}
+
+@media (max-width: 899px) {
+  .local__title,
+  .local__intro {
+    grid-column: 1 / -1;
+  }
+
+  .local__problems,
+  .plans,
+  .local__demos ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .local__problems {
+    gap: 0;
+  }
+}
+
+/* --- Site assistant widget (public/demos/assets/chatbot.css) themed to the studio ------------ */
+
+body {
+  --cb-accent: var(--ember-deep);
+  --cb-on-accent: var(--bone-0);
+  --cb-badge: var(--bone-0);
+  --cb-soft: var(--bone-1);
+  --cb-line: var(--bone-2);
+  --cb-muted: var(--ink-4);
+}
+
+/* A light ring keeps the launcher visible over the ember contact section too. */
+.cb-launcher {
+  box-shadow:
+    0 0 0 2px var(--bone-0),
+    0 12px 28px oklch(0 0 0 / 0.35);
+}
+
+/* The site's global form styles would otherwise darken the chat input. */
+.cb-form input {
+  background: #fff;
+  color: #0f172a;
+  border-color: var(--bone-2);
+}
+
+.cb-form input::placeholder {
+  color: var(--ink-4);
+}
