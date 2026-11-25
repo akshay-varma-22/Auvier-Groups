@@ -5,7 +5,6 @@ import "../styles/hero.css";
 import "../styles/work.css";
 import "../styles/sections.css";
 import "../styles/contact.css";
-import "../styles/local.css";
 import TechnologiesApp from "../TechnologiesApp";
 
 createRoot(document.getElementById("root")!).render(

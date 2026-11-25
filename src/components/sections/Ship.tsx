@@ -35,7 +35,7 @@ export function Ship() {
     <section className="section ship" aria-labelledby="ship-title">
       <div className="container ship__grid">
         <div className="ship__copy">
-          <Eyebrow index="06">Launch</Eyebrow>
+          <Eyebrow index="05">Launch</Eyebrow>
           <SplitText as="h2" id="ship-title" className="ship__title" text="Launch day, *minus the drama.*" />
           <p className="ship__text">
             Deployment isn't an afterthought we pass to someone else. We set up hosting, domains, SSL, analytics and

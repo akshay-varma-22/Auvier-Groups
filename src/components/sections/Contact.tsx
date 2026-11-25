@@ -93,7 +93,7 @@ export function Contact() {
     <section id="contact" className="section section--sheet theme-ember contact" aria-labelledby="contact-title">
       <div className="container contact__grid">
         <div className="contact__copy">
-          <Eyebrow index="09">Start a project</Eyebrow>
+          <Eyebrow index="08">Start a project</Eyebrow>
           <SplitText as="h2" id="contact-title" className="contact__title" text={contact.heading} />
           <p className="contact__lede">{contact.lede}</p>
 
@@ -134,8 +134,7 @@ export function Contact() {
                   <>
                     <h3>Thanks, your brief is with us.</h3>
                     <p>
-                      We'll reply within one business day from <a href={`mailto:${site.email}`}>{site.email}</a>. Asked for a
-                      mock-up? It arrives within 48 hours.
+                      We'll reply within one business day from <a href={`mailto:${site.email}`}>{site.email}</a>.
                     </p>
                     <button className="brief__again" onClick={() => setSent(false)}>
                       Send another brief

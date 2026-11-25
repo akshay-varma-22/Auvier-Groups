@@ -20,7 +20,6 @@ export const site = {
 export const navLinks = [
   { label: "Work", href: "#work" },
   { label: "Services", href: "#services" },
-  { label: "Pricing", href: "#local" },
   { label: "Process", href: "#process" },
   { label: "FAQ", href: "#faq" },
 ];
@@ -272,53 +271,6 @@ export const services = [
   },
 ];
 
-/* Fixed-price package for local businesses: a website with a built-in assistant.
-   The demo sites live in public/demos and show fictional businesses. */
-export const local = {
-  eyebrow: "For local businesses",
-  heading: "Websites that answer your customers *while you sleep.*",
-  intro:
-    "A fixed-price package for dentists, salons, trades and local services: a fast website with a built-in assistant that answers common questions, takes booking requests and sends you every lead. Live in 7 days.",
-  problems: [
-    { title: "Missed calls are missed jobs", body: "Most customers won't leave a voicemail. They call the next business on Google." },
-    { title: "Questions come after hours", body: "People browse in the evening. Your assistant answers them while you're off the clock." },
-    { title: "Old sites lose trust", body: "A slow, dated site on a phone makes customers doubt the business behind it." },
-  ],
-  plans: [
-    {
-      name: "Starter",
-      price: "$750",
-      per: "one-off",
-      blurb: "A polished one-page site with a 24/7 assistant.",
-      items: ["Mobile-first one-page website", "Assistant trained on your FAQs", "Enquiry form to your inbox", "Basic SEO, Google-ready", "Live in 7 days, 1 revision round"],
-      featured: false,
-    },
-    {
-      name: "Pro",
-      price: "$1,500",
-      per: "one-off",
-      blurb: "A full multi-page site built to convert.",
-      items: ["Up to 6 pages", "Assistant trained on your services & prices", "Booking or quote request forms", "Google Business Profile tune-up", "2 revision rounds, 30 days of support"],
-      featured: true,
-    },
-    {
-      name: "Care plan",
-      price: "$49",
-      per: "per month, optional",
-      blurb: "We keep everything running.",
-      items: ["Hosting setup & monitoring", "Content & price updates", "Assistant answers kept current", "Monthly enquiry report", "Cancel any time"],
-      featured: false,
-    },
-  ],
-  demos: [
-    { name: "Brightside Family Dental", sector: "Dental practice", href: "../demos/dental/", body: "Booking requests, insurance answers and same-day emergency enquiries.", panel: "oklch(0.52 0.09 210)" },
-    { name: "Northside Plumbing & Heating", sector: "Trades", href: "../demos/plumbing/", body: "24/7 emergency triage, upfront prices and instant quote requests.", panel: "oklch(0.5 0.16 262)" },
-    { name: "Bloom Hair Studio", sector: "Salon", href: "../demos/salon/", body: "Service menu with prices, stylist profiles and booking requests.", panel: "oklch(0.5 0.17 355)" },
-  ],
-  assistantNote: "Try it now: the orange chat button in the corner is the same assistant your customers would get. No monthly AI fees.",
-  location: "Based in India, working with clients worldwide. Everything runs by email and preview links, so time zones never get in the way.",
-};
-
 export const process = [
   {
     title: "Discover",
@@ -381,15 +333,11 @@ export const principles = [
 export const faqs = [
   {
     q: "How long does a website take?",
-    a: "Our local-business package goes live in 7 days. Custom brand websites take around four to eight weeks from kickoff to launch, and larger builds like e-commerce or web apps take longer — you'll get a clear timeline before we start.",
+    a: "Most brand websites take around four to eight weeks from kickoff to launch. Larger builds like e-commerce or web apps take longer — you'll get a clear timeline before we start.",
   },
   {
     q: "How much does a website cost?",
-    a: "For local businesses we have fixed prices: Starter $750, Pro $1,500 and an optional $49/month care plan (see Pricing). Custom projects are scoped to your goals and get a clear, fixed quote — no hourly surprises.",
-  },
-  {
-    q: "Where are you based?",
-    a: "We're based in India and work with clients worldwide. Everything runs by email and shared preview links, so you never have to be online at the same time as us, and video calls can be booked at a time that suits you.",
+    a: "Every project is scoped to your goals, so we don't sell one-size packages. Tell us what you need and we'll come back with a clear, fixed quote — no hourly surprises.",
   },
   {
     q: "Do you only design, or do you build it too?",
@@ -412,6 +360,6 @@ export const faqs = [
 export const contact = {
   heading: "Let's build something *unforgettable.*",
   lede: "Tell us a little about your project. We reply to every enquiry, usually within one working day.",
-  needs: ["Local business package", "New website", "Redesign", "E-commerce", "Web app", "Hosting & care", "Not sure yet"],
+  needs: ["New website", "Redesign", "E-commerce", "Web app", "Hosting & care", "Not sure yet"],
   timelines: ["As soon as possible", "1–2 months", "3+ months", "Flexible"],
 };
