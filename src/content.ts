@@ -107,26 +107,6 @@ export const projects: Project[] = [
     stack: ["React", "Vite", "Netlify"],
   },
   {
-    id: "artonym",
-    kind: "client",
-    name: "Artonym",
-    sector: "Fine-arts technology company",
-    type: "Company website",
-    summary:
-      "A calm, typographic company site for the team behind Art & Artist — mission, product, people and contact in one clear scroll.",
-    tags: ["Company site", "Typography", "Minimal"],
-    panel: "oklch(0.17 0 0)",
-    panelInk: "oklch(0.97 0 0)",
-    url: "https://www.artonym.in/",
-    shots: shotsFor("artonym"),
-    challenge:
-      "Give the company building Art & Artist a credible, focused presence for galleries, institutions and future partners.",
-    approach:
-      "A restrained black-and-white system with large serif type, a product spotlight for Art & Artist, a rotating 'Built for…' headline, and clear team and contact sections.",
-    built: ["Product spotlight", "Rotating audience headline", "Mission, vision & values", "Team & contact sections"],
-    stack: ["React", "Vite"],
-  },
-  {
     id: "rare-art",
     kind: "client",
     name: "The Rare Art",
@@ -145,6 +125,26 @@ export const projects: Project[] = [
       "The story unfolds in six chapters: a single-line amphora motif, a scrolling collection, and a 3D viewing room where visitors turn a piece and try finishes before they enquire.",
     built: ["Chaptered scroll narrative", "Interactive 3D viewing room", "Six-chapter collection", "Private enquiry & showroom visit"],
     stack: ["React", "Vite", "three.js", "Vercel"],
+  },
+  {
+    id: "artonym",
+    kind: "client",
+    name: "Artonym",
+    sector: "Fine-arts technology company",
+    type: "Company website",
+    summary:
+      "A calm, typographic company site for the team behind Art & Artist — mission, product, people and contact in one clear scroll.",
+    tags: ["Company site", "Typography", "Minimal"],
+    panel: "oklch(0.17 0 0)",
+    panelInk: "oklch(0.97 0 0)",
+    url: "https://www.artonym.in/",
+    shots: shotsFor("artonym"),
+    challenge:
+      "Give the company building Art & Artist a credible, focused presence for galleries, institutions and future partners.",
+    approach:
+      "A restrained black-and-white system with large serif type, a product spotlight for Art & Artist, a rotating 'Built for…' headline, and clear team and contact sections.",
+    built: ["Product spotlight", "Rotating audience headline", "Mission, vision & values", "Team & contact sections"],
+    stack: ["React", "Vite"],
   },
   {
     id: "art-and-artist",
