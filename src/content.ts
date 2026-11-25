@@ -107,6 +107,26 @@ export const projects: Project[] = [
     stack: ["React", "Vite", "Netlify"],
   },
   {
+    id: "artonym",
+    kind: "client",
+    name: "Artonym",
+    sector: "Fine-arts technology company",
+    type: "Company website",
+    summary:
+      "A calm, typographic company site for the team behind Art & Artist — mission, product, people and contact in one clear scroll.",
+    tags: ["Company site", "Typography", "Minimal"],
+    panel: "oklch(0.17 0 0)",
+    panelInk: "oklch(0.97 0 0)",
+    url: "https://www.artonym.in/",
+    shots: shotsFor("artonym"),
+    challenge:
+      "Give the company building Art & Artist a credible, focused presence for galleries, institutions and future partners.",
+    approach:
+      "A restrained black-and-white system with large serif type, a product spotlight for Art & Artist, a rotating 'Built for…' headline, and clear team and contact sections.",
+    built: ["Product spotlight", "Rotating audience headline", "Mission, vision & values", "Team & contact sections"],
+    stack: ["React", "Vite"],
+  },
+  {
     id: "rare-art",
     kind: "client",
     name: "The Rare Art",
@@ -117,7 +137,7 @@ export const projects: Project[] = [
     tags: ["Storytelling", "3D / WebGL", "Art direction"],
     panel: "oklch(0.8 0.008 90)",
     panelInk: "oklch(0.2 0.005 90)",
-    url: "https://rare-art.vercel.app/",
+    url: "https://rare-art.vercel.app/first-sample",
     shots: shotsFor("rare-art"),
     challenge:
       "Introduce a new destination for rare objects, by Select Homes, with the quiet polish of a private gallery — and invite collectors to enquire or visit.",
@@ -144,26 +164,6 @@ export const projects: Project[] = [
     approach:
       "A floating collage of Indian art forms, a scroll-driven story from problem to vision, audience-by-audience sections and a sample feed — all leading to a ticket-style founding-member waitlist.",
     built: ["Floating art-form collage", "Scroll-driven brand story", "Audience & how-it-works sections", "Founding-member waitlist"],
-    stack: ["React", "Vite"],
-  },
-  {
-    id: "artonym",
-    kind: "client",
-    name: "Artonym",
-    sector: "Fine-arts technology company",
-    type: "Company website",
-    summary:
-      "A calm, typographic company site for the team behind Art & Artist — mission, product, people and contact in one clear scroll.",
-    tags: ["Company site", "Typography", "Minimal"],
-    panel: "oklch(0.17 0 0)",
-    panelInk: "oklch(0.97 0 0)",
-    url: "https://www.artonym.in/",
-    shots: shotsFor("artonym"),
-    challenge:
-      "Give the company building Art & Artist a credible, focused presence for galleries, institutions and future partners.",
-    approach:
-      "A restrained black-and-white system with large serif type, a product spotlight for Art & Artist, a rotating 'Built for…' headline, and clear team and contact sections.",
-    built: ["Product spotlight", "Rotating audience headline", "Mission, vision & values", "Team & contact sections"],
     stack: ["React", "Vite"],
   },
   {
